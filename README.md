@@ -1,2 +1,2 @@
 # richy-hunter-ai-dashboard
-Scanner 
+Scanner Memcoin
