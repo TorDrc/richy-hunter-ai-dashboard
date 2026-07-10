@@ -103,3 +103,92 @@
     }
 
 }
+
+async function scanNewTokens(){
+
+try{
+
+let response = await fetch(
+"https://richy-hunter-api.kenedykabori104.workers.dev/?mode=new"
+);
+
+
+let data = await response.json();
+
+
+let html="";
+
+
+data.tokens.forEach(token=>{
+
+
+let signal =
+token.score >= 80
+? "🚀 Hunter Entry"
+: token.score >=60
+? "👀 Watch"
+:"⛔ Avoid";
+
+
+html += `
+
+<div class="card">
+
+<h3>
+${token.name} (${token.symbol})
+</h3>
+
+<p>
+Score :
+<b>${token.score}/100</b>
+</p>
+
+<p>
+Market Cap:
+$${Number(token.marketCap).toLocaleString()}
+</p>
+
+<p>
+Liquidity:
+$${Number(token.liquidity).toLocaleString()}
+</p>
+
+<p>
+Volume 24h:
+$${Number(token.volume).toLocaleString()}
+</p>
+
+<p>
+Buy:
+${token.buys}
+|
+Sell:
+${token.sells}
+</p>
+
+<p>
+${signal}
+</p>
+
+
+</div>
+
+`;
+
+});
+
+
+document.getElementById("results").innerHTML = html;
+
+
+}
+
+catch(e){
+
+console.log(e);
+
+alert("Erreur scanner automatique");
+
+}
+
+}

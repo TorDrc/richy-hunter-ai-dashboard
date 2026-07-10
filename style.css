@@ -1,41 +1,344 @@
- function scanToken() {
-    const url = document.getElementById("tokenUrl").value;
-    if (!url) {
-        alert("Colle d'abord un lien DexScreener");
-        return;
-    }
-    // Génération d'un score d'analyse V1
-    let score = Math.floor(Math.random() * (95 - 45) + 45);
-    let liquidity = Math.floor(Math.random() * 900000);
-    let volume = Math.floor(Math.random() * 5000000);
-    let holders = Math.floor(Math.random() * 5000);
-    let whales = Math.floor(Math.random() * 20);
-    let rugRisk;
-    if (score >= 80) {
-        rugRisk = "Faible";
-        
-        document.getElementById("signal").innerHTML =
-        "🟢 BON SIGNAL - Hunter Entry";
-    }
-    else if (score >= 60) {
-        rugRisk = "Moyen";
-        document.getElementById("signal").innerHTML =
-        "🟡 SURVEILLER";
-    }
-    else {
-        rugRisk = "Élevé";
-        document.getElementById("signal").innerHTML =
-        "🔴 RISQUE ÉLEVÉ - Éviter";
-    }
-    document.getElementById("score").innerHTML = score;
-    document.getElementById("liquidity").innerHTML =
-    "$" + liquidity.toLocaleString();
-    document.getElementById("volume").innerHTML =
-    "$" + volume.toLocaleString();
-    document.getElementById("holders").innerHTML =
-    holders;
-    document.getElementById("whales").innerHTML =
-    whales + " détectées";
-    document.getElementById("rug").innerHTML =
-    rugRisk;
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+
+body{
+
+    font-family:Arial, Helvetica, sans-serif;
+
+    background:#05070d;
+
+    color:#ffffff;
+
+    min-height:100vh;
+
+}
+
+
+
+.app{
+
+    width:100%;
+
+    max-width:480px;
+
+    margin:auto;
+
+    padding:15px;
+
+}
+
+
+
+header{
+
+    text-align:center;
+
+    margin-bottom:20px;
+
+}
+
+
+
+header h1{
+
+    font-size:28px;
+
+    margin-bottom:8px;
+
+}
+
+
+
+header p{
+
+    color:#8fa3bf;
+
+    font-size:14px;
+
+}
+
+
+
+
+
+.card{
+
+    background:#101622;
+
+    border-radius:18px;
+
+    padding:18px;
+
+    margin-bottom:15px;
+
+    border:1px solid #1e293b;
+
+}
+
+
+
+
+
+.card h2{
+
+    font-size:18px;
+
+    margin-bottom:15px;
+
+}
+
+
+
+
+
+input{
+
+    width:100%;
+
+    padding:14px;
+
+    border-radius:12px;
+
+    border:1px solid #334155;
+
+    background:#05070d;
+
+    color:white;
+
+    font-size:14px;
+
+    margin-bottom:12px;
+
+}
+
+
+
+
+
+button{
+
+    width:100%;
+
+    padding:14px;
+
+    border:none;
+
+    border-radius:12px;
+
+    background:#16a34a;
+
+    color:white;
+
+    font-size:16px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
+}
+
+
+
+button:active{
+
+    transform:scale(0.97);
+
+}
+
+
+
+
+
+.result{
+
+    text-align:center;
+
+}
+
+
+
+
+
+.score{
+
+    font-size:45px;
+
+    font-weight:bold;
+
+    color:#22c55e;
+
+    margin:15px;
+
+}
+
+
+
+
+
+.status{
+
+    font-size:18px;
+
+    font-weight:bold;
+
+}
+
+
+
+
+
+.stats span,
+.card span{
+
+    color:#38bdf8;
+
+    font-weight:bold;
+
+}
+
+
+
+
+
+.card p{
+
+    margin:10px 0;
+
+    font-size:15px;
+
+}
+
+
+
+
+
+ul{
+
+    list-style:none;
+
+}
+
+
+
+li{
+
+    margin:10px 0;
+
+}
+
+
+
+
+
+#results .card{
+
+    background:#0b1220;
+
+    border-left:4px solid #22c55e;
+
+}
+
+
+
+
+
+#scannerStatus{
+
+    text-align:center;
+
+    margin:15px 0;
+
+    color:#94a3b8;
+
+}
+
+
+
+
+
+footer{
+
+    text-align:center;
+
+    color:#64748b;
+
+    font-size:13px;
+
+    margin-top:20px;
+
+    padding-bottom:20px;
+
+}
+
+
+
+
+
+
+/* Signaux */
+
+
+
+
+.hunter{
+
+    color:#22c55e;
+
+}
+
+
+
+.watch{
+
+    color:#eab308;
+
+}
+
+
+
+.avoid{
+
+    color:#ef4444;
+
+}
+
+
+
+
+
+
+/* Effet terminal crypto */
+
+
+.card:hover{
+
+    border-color:#38bdf8;
+
+}
+
+
+
+
+
+@media(max-width:350px){
+
+
+header h1{
+
+    font-size:23px;
+
+}
+
+
+.score{
+
+    font-size:38px;
+
+}
+
+
 }
