@@ -83,8 +83,8 @@ return;
 // SCORE
 
 
-document.getElementById("score").innerHTML =
-`${data.score}/100`;
+ document.getElementById("score").innerHTML =
+data.score;
 
 
 
