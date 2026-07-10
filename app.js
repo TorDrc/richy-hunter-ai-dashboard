@@ -1,142 +1,75 @@
- async function scan(){
-
-let address =
-document.getElementById("token").value;
-
-
-if(address.length < 20){
-
-alert("Adresse incorrecte");
-
+ async function scanToken() {
+const url = document.getElementById("tokenUrl").value;
+if(!url){
+alert("Colle un lien DexScreener");
 return;
-
 }
-
-
-let url =
-"https://api.dexscreener.com/latest/dex/tokens/"
-+address;
-
-
-
-let response =
-await fetch(url);
-
-
-let data =
-await response.json();
-
-
-let pair =
-data.pairs ? data.pairs[0] : null;
-
-
-
-if(!pair){
-
-document.getElementById("result").innerHTML =
-"❌ Token introuvable";
-
+// récupère l'adresse du token
+let tokenAddress = url.split("/").pop();
+try {
+let response = await fetch(
+`https://api.dexscreener.com/latest/dex/tokens/${tokenAddress}`
+);
+let data = await response.json();
+if(!data.pairs){
+alert("Token introuvable");
 return;
-
 }
-
-
-
-let liquidity =
-Number(pair.liquidity.usd || 0);
-
-
-let volume =
-Number(pair.volume.h24 || 0);
-
-
-
-let score=0;
-
-
-if(liquidity>10000)
-score+=30;
-
-
-if(volume>10000)
-score+=30;
-
-
-if(pair.priceUsd)
-score+=20;
-
-
-score+=20;
-
-
-
-let status;
-
-
-if(score>=80){
-
-status="🟢 BON SIGNAL";
-
+let pair = data.pairs[0];
+let liquidity = pair.liquidity.usd || 0;
+let volume = pair.volume.h24 || 0;
+let priceChange = pair.priceChange.h24 || 0;
+let buys = pair.txns.h24.buys || 0;
+let sells = pair.txns.h24.sells || 0;
+let score = 50;
+// Liquidity
+if(liquidity > 10000)
+score += 15;
+if(liquidity > 50000)
+score += 10;
+// Volume
+if(volume > 50000)
+score += 10;
+if(volume > 500000)
+score += 10;
+// Buyers
+if(buys > sells)
+score += 5;
+else
+score -= 10;
+// Price movement
+if(priceChange > 0)
+score += 5;
+if(score > 100)
+score = 100;
+let risk;
+if(score >=80)
+risk="Faible 🟢";
+else if(score>=60)
+risk="Moyen 🟡";
+else
+risk="Élevé 🔴";
+document.getElementById("score").innerHTML =
+score;
+document.getElementById("liquidity").innerHTML =
+"$"+liquidity.toLocaleString();
+document.getElementById("volume").innerHTML =
+"$"+volume.toLocaleString();
+document.getElementById("holders").innerHTML =
+"N/D (API future)";
+document.getElementById("whales").innerHTML =
+buys+" achats / "+sells+" ventes";
+document.getElementById("rug").innerHTML =
+risk;
+document.getElementById("signal").innerHTML =
+score>=80 ?
+"🚀 Hunter Entry" :
+score>=60 ?
+"👀 Surveillance" :
+"⛔ Éviter";
 }
-
-else if(score>=60){
-
-status="🟡 SURVEILLANCE";
-
+catch(error){
+alert("Erreur API DexScreener");
+console.log(error);
 }
-
-else{
-
-status="🔴 RISQUE";
-
-}
-
-
-
-document.getElementById("result").innerHTML=`
-
-<div class="card">
-
-<h2>${pair.baseToken.name}</h2>
-
-<h1 class="green">
-${score}/100
-</h1>
-
-
-<h3>${status}</h3>
-
-
-<p>
-💧 Liquidité :
-$${liquidity.toLocaleString()}
-</p>
-
-
-<p>
-📊 Volume 24h :
-$${volume.toLocaleString()}
-</p>
-
-
-<a target="_blank"
-href="https://dexscreener.com/solana/${address}">
-Voir DexScreener
-</a>
-
-
-<br><br>
-
-
-<a target="_blank"
-href="https://phantom.app/ul/browse/${address}">
-Ouvrir Phantom
-</a>
-
-
-</div>
-
-`;
-
 }

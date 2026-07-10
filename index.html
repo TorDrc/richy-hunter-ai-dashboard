@@ -1,36 +1,57 @@
  <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Richy Hunter AI</title>
-
 <link rel="stylesheet" href="style.css">
-
 </head>
-
 <body>
-
-<div class="box">
-
+<div class="app">
+<header>
 <h1>🚀 Richy Hunter AI</h1>
-
 <p>Solana Memecoin Scanner</p>
-
-<input id="token" placeholder="Colle adresse du token Solana">
-
-<button onclick="scan()">SCANNER</button>
-
-
-<div id="result">
-
+</header>
+<section class="card">
+<h2>Scanner un Token</h2>
+<input 
+id="tokenUrl" 
+type="text" 
+placeholder="Colle ton lien DexScreener Solana">
+<button onclick="scanToken()">
+Analyser
+</button>
+</section>
+<section class="card result">
+<h2>Analyse AI</h2>
+<div class="score">
+<span id="score">--</span>/100
 </div>
-
-
+<div class="status" id="signal">
+En attente...
 </div>
-
-
+<div class="stats">
+<p>💧 Liquidité : <span id="liquidity">--</span></p>
+<p>📈 Volume 24H : <span id="volume">--</span></p>
+<p>👥 Holders : <span id="holders">--</span></p>
+<p>🐋 Whales : <span id="whales">--</span></p>
+<p>🛡️ Risque Rug : <span id="rug">--</span></p>
+</div>
+</section>
+<section class="card">
+<h2>Règles Hunter</h2>
+<ul>
+<li>✅ Liquidité verrouillée</li>
+<li>✅ Volume en croissance</li>
+<li>✅ Acheteurs supérieurs aux vendeurs</li>
+<li>⚠️ Attention aux nouveaux tokens sans historique</li>
+<li>❌ Éviter les gros risques Rug</li>
+</ul>
+</section>
+<footer>
+Richy Hunter AI v1.0
+</footer>
+</div>
 <script src="app.js"></script>
-
 </body>
 </html>

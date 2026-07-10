@@ -1,66 +1,41 @@
- body{
-
-background:#111;
-color:white;
-font-family:Arial;
-text-align:center;
-
-}
-
-
-.box{
-
-margin:30px auto;
-padding:20px;
-width:90%;
-max-width:400px;
-background:#1e1e1e;
-border-radius:20px;
-
-}
-
-
-input{
-
-width:90%;
-padding:15px;
-border-radius:10px;
-margin:10px;
-
-}
-
-
-button{
-
-padding:15px;
-width:90%;
-border-radius:10px;
-background:#00ff88;
-border:none;
-font-weight:bold;
-
-}
-
-
-.card{
-
-margin-top:20px;
-padding:15px;
-background:#222;
-border-radius:15px;
-
-}
-
-
-.green{
-
-color:#00ff88;
-
-}
-
-
-.red{
-
-color:red;
-
+ function scanToken() {
+    const url = document.getElementById("tokenUrl").value;
+    if (!url) {
+        alert("Colle d'abord un lien DexScreener");
+        return;
+    }
+    // Génération d'un score d'analyse V1
+    let score = Math.floor(Math.random() * (95 - 45) + 45);
+    let liquidity = Math.floor(Math.random() * 900000);
+    let volume = Math.floor(Math.random() * 5000000);
+    let holders = Math.floor(Math.random() * 5000);
+    let whales = Math.floor(Math.random() * 20);
+    let rugRisk;
+    if (score >= 80) {
+        rugRisk = "Faible";
+        
+        document.getElementById("signal").innerHTML =
+        "🟢 BON SIGNAL - Hunter Entry";
+    }
+    else if (score >= 60) {
+        rugRisk = "Moyen";
+        document.getElementById("signal").innerHTML =
+        "🟡 SURVEILLER";
+    }
+    else {
+        rugRisk = "Élevé";
+        document.getElementById("signal").innerHTML =
+        "🔴 RISQUE ÉLEVÉ - Éviter";
+    }
+    document.getElementById("score").innerHTML = score;
+    document.getElementById("liquidity").innerHTML =
+    "$" + liquidity.toLocaleString();
+    document.getElementById("volume").innerHTML =
+    "$" + volume.toLocaleString();
+    document.getElementById("holders").innerHTML =
+    holders;
+    document.getElementById("whales").innerHTML =
+    whales + " détectées";
+    document.getElementById("rug").innerHTML =
+    rugRisk;
 }
