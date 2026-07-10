@@ -3,53 +3,100 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Richy Hunter AI</title>
+
 <link rel="stylesheet" href="style.css">
+
 </head>
+
 <body>
+
 <div class="app">
+
 <header>
 <h1>🚀 Richy Hunter AI</h1>
 <p>Solana Memecoin Scanner</p>
 </header>
+
+
 <section class="card">
+
 <h2>Scanner un Token</h2>
+
 <input 
-id="tokenUrl" 
-type="text" 
+id="tokenUrl"
+type="text"
 placeholder="Colle ton lien DexScreener Solana">
+
+
 <button onclick="scanToken()">
 Analyser
 </button>
+
 </section>
+
+
+
 <section class="card result">
+
 <h2>Analyse AI</h2>
+
+
 <div class="score">
+
 <span id="score">--</span>/100
+
 </div>
+
+
 <div class="status" id="signal">
+
 En attente...
+
 </div>
+
+
+</section>
+
+
+
+
 <section class="card">
 
 <h2>🔍 SECURITY CHECK</h2>
 
-<p>Mint Authority :
+
+<p>
+Mint Authority :
 <span id="mint">--</span>
 </p>
 
-<p>Freeze Authority :
+
+<p>
+Freeze Authority :
 <span id="freeze">--</span>
 </p>
 
-<p>LP Lock :
+
+<p>
+LP Lock :
 <span id="lpLock">--</span>
 </p>
 
-<p>Top Holder Risk :
+
+<p>
+Top Holder Risk :
 <span id="holderRisk">--</span>
 </p>
 
+
+</section>
+
+
+
+
+<section class="card">
 
 <h2>🔥 SMART MONEY</h2>
 
@@ -58,62 +105,98 @@ En attente...
 </p>
 
 
+</section>
+
+
+
+<section class="card">
+
 <h2>🚨 ALERT ENGINE</h2>
 
 <p id="alert">
 --
 </p>
 
+
 </section>
-<section class="card">
-
-<h2>🔍 SECURITY CHECK</h2>
-
-<p>Mint Authority : <span id="mint">--</span></p>
-
-<p>Freeze Authority : <span id="freeze">--</span></p>
-
-<p>LP Lock : <span id="lpLock">--</span></p>
-
-<p>Top Holder Risk : <span id="holderRisk">--</span></p>
 
 
-<h2>🔥 Smart Money</h2>
 
-<p id="smartMoney">
-Analyse en cours...
+
+<section class="card stats">
+
+<h2>📊 Market Data</h2>
+
+
+<p>
+💧 Liquidité :
+<span id="liquidity">--</span>
 </p>
 
 
-<h2>🚨 Alert</h2>
-
-<p id="alert">
---
+<p>
+📈 Volume 24H :
+<span id="volume">--</span>
 </p>
 
+
+<p>
+👥 Holders :
+<span id="holders">--</span>
+</p>
+
+
+<p>
+🐋 Whales :
+<span id="whales">--</span>
+</p>
+
+
+<p>
+🛡️ Risque Rug :
+<span id="rug">--</span>
+</p>
+
+
 </section>
-<div class="stats">
-<p>💧 Liquidité : <span id="liquidity">--</span></p>
-<p>📈 Volume 24H : <span id="volume">--</span></p>
-<p>👥 Holders : <span id="holders">--</span></p>
-<p>🐋 Whales : <span id="whales">--</span></p>
-<p>🛡️ Risque Rug : <span id="rug">--</span></p>
-</div>
-</section>
+
+
+
+
 <section class="card">
+
 <h2>Règles Hunter</h2>
+
 <ul>
-<li>✅ Liquidité verrouillée</li>
+
+<li>✅ Liquidité suffisante</li>
+
 <li>✅ Volume en croissance</li>
-<li>✅ Acheteurs supérieurs aux vendeurs</li>
-<li>⚠️ Attention aux nouveaux tokens sans historique</li>
-<li>❌ Éviter les gros risques Rug</li>
+
+<li>✅ Vérification sécurité</li>
+
+<li>⚠️ Attention aux nouveaux tokens</li>
+
+<li>❌ Éviter les risques Rug</li>
+
 </ul>
+
 </section>
+
+
+
 <footer>
+
 Richy Hunter AI v1.0
+
 </footer>
+
+
 </div>
+
+
 <script src="app.js"></script>
+
+
 </body>
 </html>
