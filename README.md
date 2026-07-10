@@ -8,7 +8,7 @@ Interface optimisée iPhone avec analyse automatique via DexScreener API + Cloud
 
 ---
 
-# ⚡ Fonctionnalités actuelles
+# ⚡ Fonctionnalités actuelles(👌🏾)
 
 ## 🔎 Token Scanner
 
