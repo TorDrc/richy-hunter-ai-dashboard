@@ -2,306 +2,145 @@
 <html lang="fr">
 
 <head>
-
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Richy Hunter AI</title>
 
 <link rel="stylesheet" href="style.css">
-
 </head>
-
 
 <body>
 
-
 <div class="app">
 
-
 <header>
-
 <h1>🚀 Richy Hunter AI</h1>
-
-<p>
-Solana Memecoin Intelligence Scanner
-</p>
-
+<p>Solana Memecoin Intelligence Scanner</p>
 </header>
-
-
 
 
 <section class="card">
 
-
 <h2>🔎 Scanner un Token</h2>
-
 
 <input 
 id="tokenUrl"
 type="text"
 placeholder="Colle ton lien DexScreener Solana">
 
-
-<button onclick="scanToken()">
-
+<button type="button" onclick="scanToken()">
 Analyser Token
-
 </button>
 
-
 </section>
-
-
-
 
 
 <section class="card result">
 
-
 <h2>🤖 Analyse AI</h2>
 
-
 <div class="score">
-
-<span id="score">
---
-</span>
-
-/100
-
+<span id="score">--</span>/100
 </div>
-
-
 
 <div class="status" id="signal">
-
 En attente...
-
 </div>
-
-
 
 </section>
 
 
-
-
-
-
 <section class="card">
-
 
 <h2>🔐 SECURITY CHECK</h2>
 
-
-<p>
-Mint Authority :
-<span id="mint">
---
-</span>
+<p>Mint Authority :
+<span id="mint">--</span>
 </p>
 
-
-<p>
-Freeze Authority :
-<span id="freeze">
---
-</span>
+<p>Freeze Authority :
+<span id="freeze">--</span>
 </p>
 
-
-<p>
-LP Lock :
-<span id="lpLock">
---
-</span>
+<p>LP Lock :
+<span id="lpLock">--</span>
 </p>
 
-
-<p>
-Top Holder Risk :
-<span id="holderRisk">
---
-</span>
+<p>Top Holder Risk :
+<span id="holderRisk">--</span>
 </p>
-
-
 
 </section>
 
 
-
-
-
-
-
 <section class="card">
-
 
 <h2>🔥 SMART MONEY</h2>
 
-
-<p id="smartMoney">
-
---
-
-</p>
-
+<p id="smartMoney">--</p>
 
 </section>
-
-
-
-
-
-
 
 
 <section class="card">
 
-
 <h2>🚨 ALERT ENGINE</h2>
 
-
-<p id="alert">
-
---
-
-</p>
-
+<p id="alert">--</p>
 
 </section>
-
-
-
-
-
-
 
 
 <section class="card stats">
 
-
 <h2>📊 MARKET DATA</h2>
 
-
-
-<p>
-💧 Liquidité :
-<span id="liquidity">
---
-</span>
+<p>💧 Liquidité :
+<span id="liquidity">--</span>
 </p>
 
-
-
-<p>
-📈 Volume 24H :
-<span id="volume">
---
-</span>
+<p>📈 Volume 24H :
+<span id="volume">--</span>
 </p>
 
-
-
-<p>
-👥 Holders :
-<span id="holders">
---
-</span>
+<p>👥 Holders :
+<span id="holders">--</span>
 </p>
 
-
-
-<p>
-🐋 Whales :
-<span id="whales">
---
-</span>
+<p>🐋 Whales :
+<span id="whales">--</span>
 </p>
 
-
-
-<p>
-🛡️ Risque Rug :
-<span id="rug">
---
-</span>
+<p>🛡️ Risque Rug :
+<span id="rug">--</span>
 </p>
-
-
 
 </section>
 
 
-
-
-
-
-
-
 <section class="card">
-
 
 <h2>📋 Règles Hunter</h2>
 
-
 <ul>
-
-
-<li>
-✅ Liquidité suffisante
-</li>
-
-
-<li>
-✅ Volume en croissance
-</li>
-
-
-<li>
-✅ Sécurité du contrat vérifiée
-</li>
-
-
-<li>
-⚠️ Attention aux nouveaux tokens
-</li>
-
-
-<li>
-❌ Éviter les risques Rug
-</li>
-
-
-
+<li>✅ Liquidité suffisante</li>
+<li>✅ Volume en croissance</li>
+<li>✅ Sécurité du contrat vérifiée</li>
+<li>⚠️ Attention aux nouveaux tokens</li>
+<li>❌ Éviter les risques Rug</li>
 </ul>
-
 
 </section>
 
 
-
-
-
-
-
-
-
 <section class="card">
 
-
-<h2>
-🔥 NEW SOLANA GEMS HUNTER
-</h2>
-
-
+<h2>🔥 NEW SOLANA GEMS HUNTER</h2>
 
 <button 
 id="scanNewBtn"
+type="button"
 onclick="scanNewTokens()">
 
 🔥 Scanner nouveaux tokens Solana
@@ -309,64 +148,35 @@ onclick="scanNewTokens()">
 </button>
 
 
-
 <div id="scannerStatus">
-
 ⏳ Scanner prêt
-
 </div>
-
 
 
 <div id="results">
 
-
 <p>
-
 En attente du scan...
-
 </p>
 
-
 </div>
-
-
 
 </section>
 
 
-
-
-
-
-
-
 <footer>
 
-
 Richy Hunter AI v2.0
-
 <br>
-
 Solana Memecoin Intelligence System
 
-
 </footer>
-
-
-
 
 
 </div>
 
 
-
-
-
 <script src="app.js"></script>
 
-
-
 </body>
-
 </html>
