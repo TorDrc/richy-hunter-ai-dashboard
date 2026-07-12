@@ -202,6 +202,8 @@ button.innerHTML="Analyser Token";
 }
 
 }
+document.getElementById("holders").innerHTML =
+data.holders || "N/D";
 
 
 
