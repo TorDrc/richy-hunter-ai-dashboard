@@ -90,6 +90,8 @@ data.score>=60
 
 // MARKET DATA
 
+ // MARKET DATA
+
 document.getElementById("liquidity").innerHTML=
 "$"+Number(data.liquidity||0)
 .toLocaleString();
@@ -99,6 +101,9 @@ document.getElementById("volume").innerHTML=
 "$"+Number(data.volume||0)
 .toLocaleString();
 
+
+document.getElementById("holders").innerHTML =
+data.holders || "N/D";
 
 
 // SECURITY
@@ -202,9 +207,6 @@ button.innerHTML="Analyser Token";
 }
 
 }
-document.getElementById("holders").innerHTML =
-data.holders || "N/D";
-
 
 
 // =======================
