@@ -13,31 +13,39 @@ const button=input.nextElementSibling;
 
 let url=input.value.trim();
 
+
 if(!url){
+
 alert("Colle un lien DexScreener");
 return;
+
 }
- 
- let token=url.split("/").pop().split("?")[0];
+
+
+let token=url.split("/").pop().split("?")[0];
 
 
 if(token.length < 20){
+
 alert("Adresse Solana invalide");
 return;
+
 }
 
 
 try{
 
+
 button.disabled=true;
 button.innerHTML="⏳ Analyse...";
+
 
 document.getElementById("signal").innerHTML=
 "⏳ Analyse AI en cours...";
 
 
 let response=await fetch(
-`${WORKER_URL}/?token=${token}`
+`${WORKER_URL}/?token=${encodeURIComponent(token)}`
 );
 
 
@@ -45,15 +53,21 @@ let data=await response.json();
 
 
 if(data.error){
+
 alert(data.error);
 return;
+
 }
 
 
+
+// =======================
 // SCORE
+// =======================
+
 
 document.getElementById("score").innerHTML=
-data.score+"/100";
+(data.score || 0)+"/100";
 
 
 if(data.score>=80){
@@ -78,7 +92,11 @@ document.getElementById("score").style.color=
 }
 
 
+
+// =======================
 // SIGNAL
+// =======================
+
 
 document.getElementById("signal").innerHTML=
 
@@ -94,9 +112,10 @@ data.score>=60
 
 
 
+// =======================
 // MARKET DATA
+// =======================
 
- // MARKET DATA
 
 document.getElementById("liquidity").innerHTML=
 "$"+Number(data.liquidity||0)
@@ -108,11 +127,15 @@ document.getElementById("volume").innerHTML=
 .toLocaleString();
 
 
-document.getElementById("holders").innerHTML =
+document.getElementById("holders").innerHTML=
 data.holders || "N/D";
 
 
+
+// =======================
 // SECURITY
+// =======================
+
 
 document.getElementById("mint").innerHTML=
 data.mint || "N/D";
@@ -127,7 +150,7 @@ data.lp || "N/D";
 
 
 document.getElementById("holderRisk").innerHTML=
-data.holders || "N/D";
+data.holderRisk || "N/D";
 
 
 document.getElementById("rug").innerHTML=
@@ -135,14 +158,21 @@ data.rug || "N/D";
 
 
 
+// =======================
 // SMART MONEY
+// =======================
+
 
 document.getElementById("smartMoney").innerHTML=
-data.smart || 
+data.smart ||
 "Analyse Helius prochaine étape";
 
 
+
+// =======================
 // ALERT
+// =======================
+
 
 document.getElementById("alert").innerHTML=
 data.alert ||
@@ -150,10 +180,14 @@ data.alert ||
 
 
 
+// =======================
 // REGLES HUNTER
+// =======================
+
 
 let liquidity=
 Number(data.liquidity||0);
+
 
 let volume=
 Number(data.volume||0);
@@ -186,7 +220,7 @@ document.getElementById("ruleSecurity").innerHTML=
 data.freeze==="OFF")
 
 ?
-"✅ Sécurité du contrat vérifiée"
+"✅ Sécurité contrat vérifiée"
 :
 "⚠️ Contrat à vérifier";
 
@@ -194,30 +228,38 @@ data.freeze==="OFF")
 
 }
 
+
 catch(error){
 
+
 console.error(error);
+
 
 alert(
 "Erreur : Worker Cloudflare ou API indisponible"
 );
+
 
 }
 
 
 finally{
 
+
 button.disabled=false;
 button.innerHTML="Analyser Token";
 
+
 }
 
 }
+
 
 
 // =======================
 // SCANNER NOUVEAUX TOKENS
 // =======================
+
 
 async function scanNewTokens(){
 
@@ -239,6 +281,7 @@ await fetch(
 );
 
 
+
 let data=
 await response.json();
 
@@ -254,6 +297,7 @@ return;
 
 
 let html="";
+
 
 
 data.tokens.forEach((token,index)=>{
@@ -283,10 +327,12 @@ ${token.name || "Unknown"}
 (${token.symbol || ""})
 </h3>
 
+
 <p>
 Score :
-<b>${token.score}/100</b>
+<b>${token.score || 0}/100</b>
 </p>
+
 
 <p>
 💰 Market Cap :
@@ -294,17 +340,20 @@ $${Number(token.marketCap||0)
 .toLocaleString()}
 </p>
 
+
 <p>
 💧 Liquidity :
 $${Number(token.liquidity||0)
 .toLocaleString()}
 </p>
 
+
 <p>
 📈 Volume :
 $${Number(token.volume||0)
 .toLocaleString()}
 </p>
+
 
 <p>
 🟢 Buy :
@@ -314,9 +363,11 @@ ${token.buys||0}
 ${token.sells||0}
 </p>
 
+
 <p>
 ${signal}
 </p>
+
 
 </div>
 
@@ -325,8 +376,10 @@ ${signal}
 });
 
 
+
 document.getElementById("results").innerHTML=
 html;
+
 
 
 status.innerHTML=
@@ -337,15 +390,19 @@ data.tokens.length
 " tokens analysés";
 
 
+
 }
 
 
 catch(error){
 
+
 console.error(error);
+
 
 status.innerHTML=
 "❌ Erreur scanner automatique";
+
 
 }
 
