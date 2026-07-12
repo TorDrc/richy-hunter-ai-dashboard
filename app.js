@@ -17,8 +17,14 @@ if(!url){
 alert("Colle un lien DexScreener");
 return;
 }
+ 
+ let token=url.split("/").pop().split("?")[0];
 
-let token=url.split("/").pop().split("?")[0];
+
+if(token.length < 20){
+alert("Adresse Solana invalide");
+return;
+}
 
 
 try{
