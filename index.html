@@ -1,455 +1,100 @@
  <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Richy Hunter AI</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: #0b0e1a;
-      color: #e0e4f0;
-      padding: 20px;
-      display: flex;
-      justify-content: center;
-    }
-
-    .app {
-      max-width: 780px;
-      width: 100%;
-    }
-
-    header {
-      text-align: center;
-      padding: 30px 0 20px;
-      border-bottom: 1px solid #2a2f45;
-      margin-bottom: 28px;
-    }
-
-    header h1 {
-      font-size: 2.2rem;
-      background: linear-gradient(135deg, #f7b731, #f5a623);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      letter-spacing: -0.5px;
-    }
-
-    header p {
-      color: #8892b0;
-      font-size: 1rem;
-      margin-top: 6px;
-    }
-
-    .card {
-      background: #141a2b;
-      border-radius: 24px;
-      padding: 22px 24px;
-      margin-bottom: 22px;
-      border: 1px solid #252d44;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-      transition: 0.2s;
-    }
-
-    .card h2 {
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: #ccd6f6;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    input[type="text"] {
-      width: 100%;
-      padding: 14px 18px;
-      background: #0f1425;
-      border: 1px solid #2d3650;
-      border-radius: 60px;
-      color: white;
-      font-size: 1rem;
-      outline: none;
-      transition: 0.2s;
-    }
-
-    input[type="text"]:focus {
-      border-color: #f5a623;
-      box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.15);
-    }
-
-    button {
-      width: 100%;
-      margin-top: 14px;
-      padding: 14px;
-      background: linear-gradient(135deg, #f7b731, #e6951e);
-      border: none;
-      border-radius: 60px;
-      font-weight: 700;
-      font-size: 1.05rem;
-      color: #0b0e1a;
-      cursor: pointer;
-      transition: 0.2s;
-      box-shadow: 0 4px 14px rgba(245, 166, 35, 0.25);
-    }
-
-    button:hover {
-      transform: scale(1.02);
-      box-shadow: 0 6px 20px rgba(245, 166, 35, 0.4);
-    }
-
-    button:active {
-      transform: scale(0.97);
-    }
-
-    .result .score {
-      font-size: 3.6rem;
-      font-weight: 800;
-      text-align: center;
-      color: #f7b731;
-      line-height: 1.2;
-    }
-
-    .result .status {
-      text-align: center;
-      font-size: 1.2rem;
-      padding: 8px 0 4px;
-      color: #a8b2d1;
-    }
-
-    .stats p,
-    .card p {
-      display: flex;
-      justify-content: space-between;
-      padding: 6px 0;
-      border-bottom: 1px solid #1f2740;
-      font-size: 0.98rem;
-    }
-
-    .stats p:last-child,
-    .card p:last-child {
-      border-bottom: none;
-    }
-
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    ul li {
-      padding: 8px 0 8px 28px;
-      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23f5a623" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>') left center no-repeat;
-      background-size: 18px;
-      border-bottom: 1px solid #1b2338;
-    }
-
-    ul li:last-child {
-      border-bottom: none;
-    }
-
-    #scannerStatus {
-      margin: 12px 0 8px;
-      color: #8892b0;
-      font-style: italic;
-    }
-
-    #results {
-      background: #0f1425;
-      border-radius: 16px;
-      padding: 14px 16px;
-      margin-top: 10px;
-      font-size: 0.95rem;
-      max-height: 240px;
-      overflow-y: auto;
-      border: 1px solid #252d44;
-    }
-
-    #results p {
-      padding: 4px 0;
-      border-bottom: 1px solid #1b2338;
-      margin: 0;
-    }
-
-    #results p:last-child {
-      border-bottom: none;
-    }
-
-    footer {
-      text-align: center;
-      padding: 30px 0 14px;
-      color: #49567a;
-      font-size: 0.85rem;
-      border-top: 1px solid #1f2740;
-      margin-top: 10px;
-    }
-
-    .badge {
-      display: inline-block;
-      background: #1f2a44;
-      padding: 2px 12px;
-      border-radius: 40px;
-      font-size: 0.8rem;
-      color: #a8b2d1;
-    }
-
-    .highlight-green {
-      color: #5cda8a;
-    }
-    .highlight-red {
-      color: #f27a7a;
-    }
-    .highlight-gold {
-      color: #f5a623;
-    }
-
-    /* scrollbar */
-    #results::-webkit-scrollbar {
-      width: 5px;
-    }
-    #results::-webkit-scrollbar-track {
-      background: #0b0e1a;
-    }
-    #results::-webkit-scrollbar-thumb {
-      background: #2d3650;
-      border-radius: 12px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Richy Hunter AI</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
+
 <div class="app">
 
-  <header>
-    <h1>🚀 Richy Hunter AI</h1>
-    <p>Solana Memecoin Intelligence Scanner</p>
-  </header>
+    <header>
+        <h1>🚀 Richy Hunter AI</h1>
+        <p>Solana Memecoin Intelligence Scanner</p>
+    </header>
 
-  <!-- SCAN -->
-  <section class="card">
-    <h2>🔎 Scanner un Token</h2>
-    <input id="tokenUrl" type="text" placeholder="Colle ton lien DexScreener Solana" />
-    <button type="button" onclick="scanToken()">Analyser Token</button>
-  </section>
+    <!-- SCAN -->
+    <section class="card">
+        <h2>🔎 Scanner un Token</h2>
+        <input 
+            id="tokenUrl" 
+            type="text" 
+            placeholder="Colle ton lien DexScreener ou adresse Solana"
+            autocomplete="off"
+        >
+        <button type="button" onclick="scanToken()">Analyser Token</button>
+    </section>
 
-  <!-- SCORE + SIGNAL -->
-  <section class="card result">
-    <h2>🤖 Analyse AI</h2>
-    <div class="score"><span id="score">--</span>/100</div>
-    <div class="status" id="signal">En attente...</div>
-  </section>
+    <!-- SCORE -->
+    <section class="card result">
+        <h2>🤖 Analyse AI</h2>
+        <div class="score" id="score">--/100</div>
+        <div class="status" id="signal">En attente...</div>
+    </section>
 
-  <!-- SECURITY -->
-  <section class="card">
-    <h2>🔐 SECURITY CHECK</h2>
-    <p>Mint Authority : <span id="mint">--</span></p>
-    <p>Freeze Authority : <span id="freeze">--</span></p>
-    <p>LP Lock : <span id="lpLock">--</span></p>
-    <p>Top Holder Risk : <span id="holderRisk">--</span></p>
-  </section>
+    <!-- SECURITY -->
+    <section class="card">
+        <h2>🔐 SECURITY CHECK</h2>
+        <p>Mint Authority : <span id="mint">--</span></p>
+        <p>Freeze Authority : <span id="freeze">--</span></p>
+        <p>LP Lock : <span id="lpLock">--</span></p>
+        <p>Top Holder Risk : <span id="holderRisk">--</span></p>
+    </section>
 
-  <!-- SMART MONEY -->
-  <section class="card">
-    <h2>🔥 SMART MONEY</h2>
-    <p id="smartMoney">Analyse Helius prochaine étape</p>
-  </section>
+    <!-- SMART MONEY -->
+    <section class="card">
+        <h2>🔥 SMART MONEY</h2>
+        <p id="smartMoney">Analyse Helius prochaine étape</p>
+    </section>
 
-  <!-- ALERT -->
-  <section class="card">
-    <h2>🚨 ALERT ENGINE</h2>
-    <p id="alert">--</p>
-  </section>
+    <!-- ALERT -->
+    <section class="card">
+        <h2>🚨 ALERT ENGINE</h2>
+        <p id="alert">--</p>
+    </section>
 
-  <!-- MARKET -->
-  <section class="card stats">
-    <h2>📊 MARKET DATA</h2>
-    <p>💧 Liquidité : <span id="liquidity">--</span></p>
-    <p>📈 Volume 24H : <span id="volume">--</span></p>
-    <p>👥 Holders : <span id="holders">--</span></p>
-    <p>🐋 Whales : <span id="whales">--</span></p>
-    <p>🛡️ Risque Rug : <span id="rug">--</span></p>
-  </section>
+    <!-- MARKET -->
+    <section class="card stats">
+        <h2>📊 MARKET DATA</h2>
+        <p>💧 Liquidité : <span id="liquidity">--</span></p>
+        <p>📈 Volume 24H : <span id="volume">--</span></p>
+        <p>👥 Holders : <span id="holders">--</span></p>
+        <p>🐋 Whales : <span id="whales">--</span></p>
+        <p>🛡️ Risque Rug : <span id="rug">--</span></p>
+    </section>
 
-  <!-- RULES -->
-  <section class="card">
-    <h2>📋 Règles Hunter</h2>
-    <ul>
-      <li id="ruleLiquidity">💧 Vérification liquidité...</li>
-      <li id="ruleVolume">📈 Vérification volume...</li>
-      <li id="ruleSecurity">🔐 Sécurité contrat...</li>
-      <li>⚠️ Attention aux nouveaux tokens</li>
-      <li>❌ Éviter les risques Rug</li>
-    </ul>
-  </section>
+    <!-- RULES -->
+    <section class="card">
+        <h2>📋 Règles Hunter</h2>
+        <ul>
+            <li id="ruleLiquidity">💧 Vérification liquidité...</li>
+            <li id="ruleVolume">📈 Vérification volume...</li>
+            <li id="ruleSecurity">🔐 Sécurité contrat...</li>
+            <li>⚠️ Attention aux nouveaux tokens</li>
+            <li>❌ Éviter les risques Rug</li>
+        </ul>
+    </section>
 
-  <!-- NEW GEMS SCANNER -->
-  <section class="card">
-    <h2>🔥 NEW SOLANA GEMS HUNTER</h2>
-    <button id="scanNewBtn" type="button" onclick="scanNewTokens()">🔥 Scanner nouveaux tokens Solana</button>
-    <div id="scannerStatus">⏳ Scanner prêt</div>
-    <div id="results"><p>En attente du scan...</p></div>
-  </section>
+    <!-- NEW GEMS -->
+    <section class="card">
+        <h2>🔥 NEW SOLANA GEMS HUNTER</h2>
+        <button type="button" onclick="scanNewTokens()">🔥 Scanner nouveaux tokens Solana</button>
+        <div id="scannerStatus">⏳ Scanner prêt</div>
+        <div id="results">
+            <p>En attente du scan...</p>
+        </div>
+    </section>
 
-  <footer>Richy Hunter AI v2.0<br />Solana Memecoin Intelligence System</footer>
+    <footer>
+        Richy Hunter AI v2.0<br>
+        Solana Memecoin Intelligence System
+    </footer>
+
 </div>
 
-<script>
-  // ------------------------------------------------------------
-  // 1. SIMULATION DATA
-  // ------------------------------------------------------------
-  function generateMockData() {
-    const liquidity = (Math.random() * 450 + 50).toFixed(0);
-    const volume = (Math.random() * 900 + 100).toFixed(0);
-    const holders = Math.floor(Math.random() * 8000 + 200);
-    const whales = Math.floor(Math.random() * 15 + 1);
-    const rugRisk = Math.random() > 0.5 ? '🟢 Faible' : '🔴 Élevé';
-    const mint = Math.random() > 0.4 ? '✅ Révoquée' : '⚠️ Active';
-    const freeze = Math.random() > 0.5 ? '✅ Désactivée' : '⚠️ Active';
-    const lpLock = Math.random() > 0.6 ? '🔒 Verrouillé (12 mois)' : '⚠️ Non verrouillé';
-    const holderRisk = Math.random() > 0.5 ? '✅ Réparti' : '⚠️ Top 10 > 30%';
-
-    return { liquidity, volume, holders, whales, rugRisk, mint, freeze, lpLock, holderRisk };
-  }
-
-  function computeScore(data) {
-    let score = 60;
-    if (data.liquidity > 150) score += 10;
-    if (data.volume > 300) score += 10;
-    if (data.holders > 1000) score += 10;
-    if (data.whales < 6) score += 10;
-    if (data.rugRisk.includes('Faible')) score += 10;
-    if (data.mint.includes('Révoquée')) score += 5;
-    if (data.freeze.includes('Désactivée')) score += 5;
-    if (data.lpLock.includes('Verrouillé')) score += 5;
-    return Math.min(100, Math.max(0, score));
-  }
-
-  function getSignal(score) {
-    if (score >= 80) return '🟢 STRONG BUY — Gem détecté !';
-    if (score >= 60) return '🟡 POTENTIEL — Surveille de près';
-    return '🔴 RISQUE ÉLEVÉ — À éviter';
-  }
-
-  function updateRules(data) {
-    document.getElementById('ruleLiquidity').textContent =
-      data.liquidity > 150 ? '✅ Liquidité suffisante ($' + data.liquidity + 'k)' : '⚠️ Liquidité faible ($' + data.liquidity + 'k)';
-    document.getElementById('ruleVolume').textContent =
-      data.volume > 300 ? '✅ Volume solide (24h: $' + data.volume + 'k)' : '⚠️ Volume faible (24h: $' + data.volume + 'k)';
-    document.getElementById('ruleSecurity').textContent =
-      data.mint.includes('Révoquée') && data.freeze.includes('Désactivée')
-        ? '✅ Sécurité OK (mint/freeze révoqués)'
-        : '⚠️ Vérifier mint/freeze';
-  }
-
-  // ------------------------------------------------------------
-  // 2. SCAN TOKEN (simulation)
-  // ------------------------------------------------------------
-  function scanToken() {
-    const input = document.getElementById('tokenUrl');
-    const url = input.value.trim();
-
-    if (!url) {
-      alert('Veuillez coller un lien DexScreener');
-      return;
-    }
-
-    // simulate loading
-    document.getElementById('score').textContent = '...';
-    document.getElementById('signal').textContent = '⏳ Analyse en cours...';
-
-    setTimeout(() => {
-      const data = generateMockData();
-
-      // market
-      document.getElementById('liquidity').textContent = '$' + data.liquidity + 'k';
-      document.getElementById('volume').textContent = '$' + data.volume + 'k';
-      document.getElementById('holders').textContent = data.holders;
-      document.getElementById('whales').textContent = data.whales;
-      document.getElementById('rug').textContent = data.rugRisk;
-
-      // security
-      document.getElementById('mint').textContent = data.mint;
-      document.getElementById('freeze').textContent = data.freeze;
-      document.getElementById('lpLock').textContent = data.lpLock;
-      document.getElementById('holderRisk').textContent = data.holderRisk;
-
-      // score & signal
-      const score = computeScore(data);
-      document.getElementById('score').textContent = score;
-      document.getElementById('signal').textContent = getSignal(score);
-
-      // smart money (mock)
-      document.getElementById('smartMoney').textContent =
-        '🐋 ' + (data.whales > 8 ? 'Plusieurs whales détectés' : 'Distribution saine') +
-        ' | ' + (data.rugRisk.includes('Faible') ? '✅ Confiance moderate' : '⚠️ Prudence');
-
-      // alert
-      document.getElementById('alert').textContent =
-        score >= 80 ? '✅ Alerte : Gem potentiel !' :
-        score >= 60 ? '📢 Alerte : Surveiller volume' :
-        '🚨 Alerte : Risque élevé';
-
-      // rules
-      updateRules(data);
-
-      // log
-      console.log('[Richy Hunter] Scan terminé pour', url);
-    }, 1200);
-  }
-
-  // ------------------------------------------------------------
-  // 3. NEW TOKENS SCANNER (simulation)
-  // ------------------------------------------------------------
-  function scanNewTokens() {
-    const statusEl = document.getElementById('scannerStatus');
-    const resultsEl = document.getElementById('results');
-
-    statusEl.textContent = '⏳ Scan en cours... (simulation)';
-    resultsEl.innerHTML = '<p>🔍 Recherche de nouveaux gems Solana...</p>';
-
-    const fakeTokens = [
-      { name: 'BONK', score: 92, liq: '$210k', vol: '$1.2M' },
-      { name: 'WIF', score: 88, liq: '$180k', vol: '$980k' },
-      { name: 'POPCAT', score: 76, liq: '$95k', vol: '$430k' },
-      { name: 'MYRO', score: 64, liq: '$52k', vol: '$190k' },
-      { name: 'MEW', score: 41, liq: '$18k', vol: '$67k' },
-    ];
-
-    setTimeout(() => {
-      statusEl.textContent = '✅ Scan terminé — ' + fakeTokens.length + ' tokens analysés';
-      resultsEl.innerHTML = fakeTokens.map(t =>
-        `<p>${t.name} — Score AI: ${t.score}/100 | 💧 ${t.liq} | 📈 ${t.vol} ${t.score >= 80 ? '⭐' : ''}</p>`
-      ).join('');
-    }, 1800);
-  }
-
-  // ------------------------------------------------------------
-  // 4. INIT : demo on load
-  // ------------------------------------------------------------
-  window.addEventListener('load', () => {
-    // fill with default mock
-    const data = generateMockData();
-    document.getElementById('liquidity').textContent = '$' + data.liquidity + 'k';
-    document.getElementById('volume').textContent = '$' + data.volume + 'k';
-    document.getElementById('holders').textContent = data.holders;
-    document.getElementById('whales').textContent = data.whales;
-    document.getElementById('rug').textContent = data.rugRisk;
-    document.getElementById('mint').textContent = data.mint;
-    document.getElementById('freeze').textContent = data.freeze;
-    document.getElementById('lpLock').textContent = data.lpLock;
-    document.getElementById('holderRisk').textContent = data.holderRisk;
-
-    const score = computeScore(data);
-    document.getElementById('score').textContent = score;
-    document.getElementById('signal').textContent = getSignal(score);
-    document.getElementById('smartMoney').textContent = '🐋 Analyse initiale : ' + (data.whales > 8 ? 'Whales actifs' : 'Distribution stable');
-    document.getElementById('alert').textContent = score >= 70 ? '✅ Aucune alerte majeure' : '⚠️ Surveiller les métriques';
-    updateRules(data);
-  });
-</script>
+<script src="app.js"></script>
 </body>
 </html>
