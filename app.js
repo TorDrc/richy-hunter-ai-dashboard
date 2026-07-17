@@ -1,4 +1,9 @@
- const WORKER_URL = "https://richy-hunter-api.kenedykabori104.workers.dev";
+ // ============================================
+// RICHY HUNTER AI - FRONTEND v4.4
+// Compatible avec Worker v4.4 Stable Pro
+// ============================================
+
+const WORKER_URL = "https://richy-hunter-api.kenedykabori104.workers.dev";
 
 // =======================
 // EXTRACT TOKEN ADDRESS
@@ -58,24 +63,29 @@ async function scanToken() {
         const score = data.score || 0;
         document.getElementById('score').textContent = score + '/100';
         
-        if (score >= 80) {
+        if (score >= 75) {
             document.getElementById('score').style.color = '#22c55e';
-        } else if (score >= 60) {
+        } else if (score >= 55) {
             document.getElementById('score').style.color = '#eab308';
         } else {
             document.getElementById('score').style.color = '#ef4444';
         }
 
-        // ======= SIGNAL =======
+        // ======= SIGNAL (basé sur l'alert du Worker) =======
         let signalText, signalClass;
-        if (score >= 80) {
+        const alertMsg = data.alert || '';
+        
+        if (alertMsg.includes('HUNTER ENTRY') || score >= 75) {
             signalText = '🟢 HUNTER ENTRY';
             signalClass = 'hunter';
-        } else if (score >= 60) {
+        } else if (alertMsg.includes('SURVEILLANCE') || score >= 55) {
             signalText = '🟡 SURVEILLANCE';
             signalClass = 'watch';
+        } else if (alertMsg.includes('RISQUE ÉLEVÉ') || score >= 35) {
+            signalText = '🟠 RISQUE ÉLEVÉ';
+            signalClass = 'avoid';
         } else {
-            signalText = '🔴 ÉVITER';
+            signalText = '🔴 RUG WARNING';
             signalClass = 'avoid';
         }
         document.getElementById('signal').textContent = signalText;
@@ -85,7 +95,7 @@ async function scanToken() {
         document.getElementById('liquidity').textContent = '$' + Number(data.liquidity || 0).toLocaleString();
         document.getElementById('volume').textContent = '$' + Number(data.volume || 0).toLocaleString();
         document.getElementById('holders').textContent = data.holders || 'N/D';
-        document.getElementById('whales').textContent = data.whales || 'N/D';
+        document.getElementById('whales').textContent = data.whaleRisk || 'N/D';
         document.getElementById('rug').textContent = data.rug || 'N/D';
 
         // ======= SECURITY =======
@@ -95,7 +105,7 @@ async function scanToken() {
         document.getElementById('holderRisk').textContent = data.holderRisk || 'N/D';
 
         // ======= SMART MONEY =======
-        document.getElementById('smartMoney').textContent = data.smart || 'Analyse Helius prochaine étape';
+        document.getElementById('smartMoney').textContent = data.smartMoney || 'Analyse Helius prochaine étape';
 
         // ======= ALERT =======
         document.getElementById('alert').textContent = data.alert || 'Aucune alerte';
@@ -105,15 +115,21 @@ async function scanToken() {
         const volume = Number(data.volume || 0);
 
         document.getElementById('ruleLiquidity').textContent = 
-            liquidity > 10000 ? '✅ Liquidité suffisante' : '❌ Liquidité faible';
+            liquidity > 30000 ? '✅ Liquidité suffisante' : 
+            liquidity > 10000 ? '🟡 Liquidité moyenne' : '❌ Liquidité faible';
 
         document.getElementById('ruleVolume').textContent = 
-            volume > 100000 ? '✅ Volume en croissance' : '❌ Volume faible';
+            volume > 100000 ? '✅ Volume en croissance' : 
+            volume > 50000 ? '🟡 Volume modéré' : '❌ Volume faible';
 
-        const isSecure = (data.mint === 'OFF' || data.mint === '✅ Révoquée') && 
-                        (data.freeze === 'OFF' || data.freeze === '✅ Désactivée');
+        const isSecure = (data.mint === 'OFF') && (data.freeze === 'OFF');
         document.getElementById('ruleSecurity').textContent = 
             isSecure ? '✅ Sécurité contrat vérifiée' : '⚠️ Contrat à vérifier';
+
+        // ======= SCORE BREAKDOWN (si disponible) =======
+        if (data.scoreBreakdown) {
+            console.log('Score Breakdown:', data.scoreBreakdown);
+        }
 
     } catch (error) {
         console.error('Scan error:', error);
@@ -154,10 +170,18 @@ async function scanNewTokens() {
         let html = '';
         data.tokens.forEach((token, index) => {
             const score = token.score || 0;
+            const alertMsg = token.alert || '';
             let signal;
-            if (score >= 80) signal = '🟢 Hunter Entry';
-            else if (score >= 60) signal = '🟡 Watch';
-            else signal = '🔴 Avoid';
+            
+            if (alertMsg.includes('HUNTER ENTRY') || score >= 75) {
+                signal = '🟢 Hunter Entry';
+            } else if (alertMsg.includes('SURVEILLANCE') || score >= 55) {
+                signal = '🟡 Watch';
+            } else if (alertMsg.includes('RISQUE ÉLEVÉ') || score >= 35) {
+                signal = '🟠 Risque Élevé';
+            } else {
+                signal = '🔴 RUG WARNING';
+            }
 
             html += `
                 <div class="card">
@@ -167,13 +191,14 @@ async function scanNewTokens() {
                     <p>💧 Liquidité : $${Number(token.liquidity || 0).toLocaleString()}</p>
                     <p>📈 Volume : $${Number(token.volume || 0).toLocaleString()}</p>
                     <p>🟢 Buy : ${token.buys || 0} | 🔴 Sell : ${token.sells || 0}</p>
+                    <p>🔐 Mint: ${token.mint || 'N/D'} | Freeze: ${token.freeze || 'N/D'}</p>
                     <p><b>${signal}</b></p>
                 </div>
             `;
         });
 
         results.innerHTML = html;
-        status.innerHTML = '✅ Scan terminé : ' + data.tokens.length + ' tokens analysés';
+        status.innerHTML = `✅ Scan terminé : ${data.tokens.length} tokens analysés (${data.durationMs || 0}ms)`;
 
     } catch (error) {
         console.error('New tokens scan error:', error);
@@ -196,3 +221,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// =======================
+// FORMAT HELPERS (optionnel)
+// =======================
+function formatNumber(num) {
+    if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M';
+    if (num >= 1e3) return (num / 1e3).toFixed(1) + 'k';
+    return num.toString();
+}
