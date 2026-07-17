@@ -2,18 +2,13 @@
   "name": "Richy Hunter AI",
   "short_name": "Richy Hunter",
   "description": "AI Solana Memecoin Scanner. Analyse RugCheck, Helius, DexScreener and Smart Money signals.",
-  
   "start_url": "./index.html",
   "scope": "./",
-
   "display": "standalone",
   "orientation": "portrait",
-
-  "background_color": "#050505",
-  "theme_color": "#00ff99",
-
+  "background_color": "#05070d",
+  "theme_color": "#22c55e",
   "lang": "fr",
-
   "icons": [
     {
       "src": "icon-192.png",
