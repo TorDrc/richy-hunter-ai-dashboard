@@ -2,48 +2,155 @@
 
 ## Solana Memecoin Intelligence Scanner
 
-Richy Hunter AI est un dashboard mobile conçu pour analyser rapidement les nouveaux tokens Solana et identifier les opportunités potentielles grâce à un système de scoring.
+**Richy Hunter AI** is an intelligent Solana memecoin scanner designed to help traders discover promising new tokens before they become mainstream.
 
-Interface optimisée iPhone avec analyse automatique via DexScreener API + Cloudflare Worker.
+Powered by **Cloudflare Workers**, **DexScreener**, **RugCheck**, and **Helius**, Richy Hunter AI analyzes each token in real time and generates a comprehensive risk and opportunity score.
+
+Optimized for mobile devices and installable as a Progressive Web App (PWA).
 
 ---
 
-# ⚡ Fonctionnalités actuelles(👌🏾)
+# ✨ Features
 
 ## 🔎 Token Scanner
 
-✅ Analyse d'un token DexScreener Solana  
-✅ Score Hunter AI /100  
-✅ Analyse liquidité  
-✅ Volume 24H  
-✅ Ratio Buy/Sell  
-✅ Market Cap  
-✅ Signal automatique :
+* ✅ Analyze any Solana token from DexScreener
+* ✅ Hunter AI Score (/100)
+* ✅ Market Cap analysis
+* ✅ Liquidity analysis
+* ✅ 24H Volume
+* ✅ Buy/Sell ratio
+* ✅ Real-time token information
+* ✅ Automatic trading signal
 
-🟢 Hunter Entry  
-🟡 Surveillance  
-🔴 Éviter  
+### Trading Signals
 
----
+🟢 **Hunter Entry** — Strong opportunity
 
-# 🔐 Security Check
+🟡 **Watchlist** — Monitor before entering
 
-Analyse des risques :
+🟠 **High Risk** — Caution
 
-✅ Mint Authority  
-✅ Freeze Authority  
-✅ Risque Rug  
-✅ Analyse sécurité du token  
+🔴 **Rug Warning** — Avoid
 
 ---
 
-# 🔥 New Solana Gems Hunter
+# 🔐 Security Analysis
 
-Scanner automatique des nouveaux tokens :
+Richy Hunter AI performs multiple security checks:
 
-✅ Détection nouveaux profils DexScreener  
-✅ Filtrage Solana uniquement  
-✅ Classement par score  
-✅ Top opportunités affichées automatiquement  
+* ✅ Mint Authority
+* ✅ Freeze Authority
+* ✅ RugCheck risk analysis
+* ✅ Whale concentration analysis
+* ✅ Holder statistics
+* ✅ Smart Money activity
+* ✅ Token security assessment
 
-Exemple :
+---
+
+# 💎 New Solana Gems Hunter
+
+Automatically scans newly listed Solana tokens.
+
+Features include:
+
+* ✅ New DexScreener token detection
+* ✅ Solana-only filtering
+* ✅ Automatic ranking by Hunter Score
+* ✅ Best opportunities displayed first
+* ✅ Fast discovery of emerging projects
+
+---
+
+# ⚙️ Technology Stack
+
+* Cloudflare Workers
+* JavaScript (ES Modules)
+* DexScreener API
+* RugCheck API
+* Helius API
+* Progressive Web App (PWA)
+
+---
+
+# 📊 Hunter AI Score
+
+The Hunter Score (/100) is calculated using multiple indicators, including:
+
+* Liquidity
+* Market Cap
+* Trading Volume
+* Buy/Sell Pressure
+* Mint Authority
+* Freeze Authority
+* RugCheck Risk
+* Whale Concentration
+* Smart Money Activity
+
+---
+
+# 📱 Progressive Web App
+
+Richy Hunter AI can be installed on mobile devices for a native app experience.
+
+Features:
+
+* 📱 Full-screen mode
+* ⚡ Fast loading
+* 🌐 Cross-platform compatibility
+* 📲 Home screen installation
+
+---
+
+# 🚀 API Endpoints
+
+### Analyze a Token
+
+```
+GET /?token=SOLANA_TOKEN_ADDRESS
+```
+
+### Scan New Tokens
+
+```
+GET /?mode=new
+```
+
+### Health Check
+
+```
+GET /health
+```
+
+---
+
+# 🛠️ Installation
+
+Clone the repository:
+
+```bash
+git clone https://github.com/TorDrc/richy-hunter-ai.git
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Deploy using Wrangler:
+
+```bash
+wrangler deploy
+```
+
+---
+
+# 📄 License
+
+MIT License
+
+---
+
+Developed with ❤️ by **Richy Hunter AI**.
