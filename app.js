@@ -1,26 +1,33 @@
  // ============================================
-// RICHY HUNTER AI - FRONTEND v4.4
-// Compatible avec Worker v4.4 Stable Pro
+// RICHY HUNTER AI - FRONTEND v4.5
+// Compatible avec Worker v14.7 HOTFIX
 // ============================================
 
 const WORKER_URL = "https://richy-hunter-api.kenedykabori104.workers.dev";
 
 // =======================
-// EXTRACT TOKEN ADDRESS
+// UTILITAIRES D'EXTRACTION
 // =======================
 function extractTokenAddress(input) {
-    // Si c'est déjà une adresse Solana (base58, ~32-44 caractères)
     if (/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(input)) {
         return input;
     }
-    
-    // Si c'est un lien DexScreener
     const match = input.match(/\/([1-9A-HJ-NP-Za-km-z]{32,44})(?:\?|$)/);
-    if (match) {
-        return match[1];
-    }
-    
+    if (match) return match[1];
     return null;
+}
+
+// =======================
+// LECTURE SÉCURISÉE DES CHAMPS
+// =======================
+function getSafe(data, path, defaultValue) {
+    const parts = path.split('.');
+    let current = data;
+    for (const part of parts) {
+        if (current === undefined || current === null) return defaultValue;
+        current = current[part];
+    }
+    return current !== undefined && current !== null ? current : defaultValue;
 }
 
 // =======================
@@ -37,7 +44,6 @@ async function scanToken() {
     }
 
     const token = extractTokenAddress(url);
-    
     if (!token) {
         alert('❌ Adresse Solana invalide');
         return;
@@ -46,7 +52,6 @@ async function scanToken() {
     try {
         button.disabled = true;
         button.innerHTML = '⏳ Analyse...';
-        
         document.getElementById('signal').innerHTML = '⏳ Analyse AI en cours...';
         document.getElementById('score').textContent = '...';
         document.getElementById('score').style.color = '#94a3b8';
@@ -59,29 +64,25 @@ async function scanToken() {
             return;
         }
 
-        // ======= SCORE =======
-        const score = data.score || 0;
+        // ---------- SCORE ----------
+        // Priorité : score à plat (hotfix) ou scores.final
+        const score = getSafe(data, 'score', getSafe(data, 'scores.final', 0));
         document.getElementById('score').textContent = score + '/100';
-        
-        if (score >= 75) {
-            document.getElementById('score').style.color = '#22c55e';
-        } else if (score >= 55) {
-            document.getElementById('score').style.color = '#eab308';
-        } else {
-            document.getElementById('score').style.color = '#ef4444';
-        }
+        document.getElementById('score').style.color =
+            score >= 75 ? '#22c55e' :
+            score >= 55 ? '#eab308' :
+            '#ef4444';
 
-        // ======= SIGNAL (basé sur l'alert du Worker) =======
+        // ---------- SIGNAL ----------
+        const alertMsg = getSafe(data, 'decision.alert', getSafe(data, 'alert', ''));
         let signalText, signalClass;
-        const alertMsg = data.alert || '';
-        
-        if (alertMsg.includes('HUNTER ENTRY') || score >= 75) {
-            signalText = '🟢 HUNTER ENTRY';
+        if (alertMsg.includes('HUNTER ENTRY') || alertMsg.includes('SNIPER ENTRY') || alertMsg.includes('INSTITUTIONAL ENTRY')) {
+            signalText = '🟢 ' + alertMsg;
             signalClass = 'hunter';
-        } else if (alertMsg.includes('SURVEILLANCE') || score >= 55) {
-            signalText = '🟡 SURVEILLANCE';
+        } else if (alertMsg.includes('WATCH') || alertMsg.includes('SURVEILLANCE')) {
+            signalText = '🟡 WATCH';
             signalClass = 'watch';
-        } else if (alertMsg.includes('RISQUE ÉLEVÉ') || score >= 35) {
+        } else if (alertMsg.includes('RISQUE ÉLEVÉ')) {
             signalText = '🟠 RISQUE ÉLEVÉ';
             signalClass = 'avoid';
         } else {
@@ -91,44 +92,56 @@ async function scanToken() {
         document.getElementById('signal').textContent = signalText;
         document.getElementById('signal').className = 'status ' + signalClass;
 
-        // ======= MARKET DATA =======
-        document.getElementById('liquidity').textContent = '$' + Number(data.liquidity || 0).toLocaleString();
-        document.getElementById('volume').textContent = '$' + Number(data.volume || 0).toLocaleString();
-        document.getElementById('holders').textContent = data.holders || 'N/D';
-        document.getElementById('whales').textContent = data.whaleRisk || 'N/D';
-        document.getElementById('rug').textContent = data.rug || 'N/D';
+        // ---------- MARKET DATA ----------
+        const liquidity = getSafe(data, 'market.liquidity', getSafe(data, 'liquidity', 0));
+        const volume = getSafe(data, 'market.volume', getSafe(data, 'volume', 0));
+        const holders = getSafe(data, 'holders', getSafe(data, 'holdersDetail.count', 'N/D'));
+        const whaleRisk = getSafe(data, 'whaleRisk', getSafe(data, 'holdersDetail.whaleRisk', 'N/D'));
+        const rugRisk = getSafe(data, 'security.rugRisk', getSafe(data, 'rugRisk', 'N/D'));
 
-        // ======= SECURITY =======
-        document.getElementById('mint').textContent = data.mint || 'N/D';
-        document.getElementById('freeze').textContent = data.freeze || 'N/D';
-        document.getElementById('lpLock').textContent = data.lp || 'N/D';
-        document.getElementById('holderRisk').textContent = data.holderRisk || 'N/D';
+        document.getElementById('liquidity').textContent = '$' + Number(liquidity).toLocaleString();
+        document.getElementById('volume').textContent = '$' + Number(volume).toLocaleString();
+        document.getElementById('holders').textContent = holders;
+        document.getElementById('whales').textContent = whaleRisk;
+        document.getElementById('rug').textContent = rugRisk;
 
-        // ======= SMART MONEY =======
-        document.getElementById('smartMoney').textContent = data.smartMoney || 'Analyse Helius prochaine étape';
+        // ---------- SECURITY ----------
+        const mint = getSafe(data, 'security.mint', getSafe(data, 'mintStatus', 'N/D'));
+        const freeze = getSafe(data, 'security.freeze', getSafe(data, 'freezeStatus', 'N/D'));
+        const lpLock = getSafe(data, 'security.lpLock', getSafe(data, 'lpLocked', 'N/D'));
+        const holderRisk = getSafe(data, 'whaleRisk', getSafe(data, 'holdersDetail.whaleRisk', 'N/D'));
 
-        // ======= ALERT =======
-        document.getElementById('alert').textContent = data.alert || 'Aucune alerte';
+        document.getElementById('mint').textContent = mint;
+        document.getElementById('freeze').textContent = freeze;
+        document.getElementById('lpLock').textContent = lpLock === true ? 'OUI' : lpLock === false ? 'NON' : 'N/D';
+        document.getElementById('holderRisk').textContent = holderRisk;
 
-        // ======= RULES =======
-        const liquidity = Number(data.liquidity || 0);
-        const volume = Number(data.volume || 0);
+        // ---------- SMART MONEY ----------
+        const smartMoney = getSafe(data, 'smartMoney', getSafe(data, 'smartMoneyDetail.score', 0));
+        document.getElementById('smartMoney').textContent = smartMoney > 0 ? smartMoney + '/100' : 'Analyse Helius prochaine étape';
 
-        document.getElementById('ruleLiquidity').textContent = 
-            liquidity > 30000 ? '✅ Liquidité suffisante' : 
-            liquidity > 10000 ? '🟡 Liquidité moyenne' : '❌ Liquidité faible';
+        // ---------- ALERT ----------
+        document.getElementById('alert').textContent = alertMsg || 'Aucune alerte';
 
-        document.getElementById('ruleVolume').textContent = 
-            volume > 100000 ? '✅ Volume en croissance' : 
-            volume > 50000 ? '🟡 Volume modéré' : '❌ Volume faible';
+        // ---------- RULES ----------
+        const liq = Number(liquidity);
+        const vol = Number(volume);
+        const isSecure = (mint === 'REVOKED' || mint === 'SAFE') && (freeze === 'REVOKED' || freeze === 'SAFE');
 
-        const isSecure = (data.mint === 'OFF') && (data.freeze === 'OFF');
-        document.getElementById('ruleSecurity').textContent = 
+        document.getElementById('ruleLiquidity').textContent =
+            liq > 30000 ? '✅ Liquidité suffisante' :
+            liq > 10000 ? '🟡 Liquidité moyenne' : '❌ Liquidité faible';
+
+        document.getElementById('ruleVolume').textContent =
+            vol > 100000 ? '✅ Volume en croissance' :
+            vol > 50000 ? '🟡 Volume modéré' : '❌ Volume faible';
+
+        document.getElementById('ruleSecurity').textContent =
             isSecure ? '✅ Sécurité contrat vérifiée' : '⚠️ Contrat à vérifier';
 
-        // ======= SCORE BREAKDOWN (si disponible) =======
-        if (data.scoreBreakdown) {
-            console.log('Score Breakdown:', data.scoreBreakdown);
+        // ---------- (optionnel) SCORE BREAKDOWN ----------
+        if (data.scores) {
+            console.log('Scores détaillés:', data.scores);
         }
 
     } catch (error) {
@@ -169,36 +182,45 @@ async function scanNewTokens() {
 
         let html = '';
         data.tokens.forEach((token, index) => {
-            const score = token.score || 0;
-            const alertMsg = token.alert || '';
+            const score = getSafe(token, 'scores.final', getSafe(token, 'score', 0));
+            const alertMsg = getSafe(token, 'decision.alert', getSafe(token, 'alert', ''));
             let signal;
-            
-            if (alertMsg.includes('HUNTER ENTRY') || score >= 75) {
-                signal = '🟢 Hunter Entry';
-            } else if (alertMsg.includes('SURVEILLANCE') || score >= 55) {
+            if (alertMsg.includes('HUNTER ENTRY') || alertMsg.includes('SNIPER ENTRY') || alertMsg.includes('INSTITUTIONAL ENTRY')) {
+                signal = '🟢 ' + alertMsg;
+            } else if (alertMsg.includes('WATCH') || alertMsg.includes('SURVEILLANCE')) {
                 signal = '🟡 Watch';
-            } else if (alertMsg.includes('RISQUE ÉLEVÉ') || score >= 35) {
+            } else if (alertMsg.includes('RISQUE ÉLEVÉ')) {
                 signal = '🟠 Risque Élevé';
             } else {
                 signal = '🔴 RUG WARNING';
             }
 
+            const name = getSafe(token, 'token.name', 'Unknown');
+            const symbol = getSafe(token, 'token.symbol', '');
+            const marketCap = getSafe(token, 'market.marketCap', getSafe(token, 'marketCap', 0));
+            const liquidity = getSafe(token, 'market.liquidity', getSafe(token, 'liquidity', 0));
+            const volume = getSafe(token, 'market.volume', getSafe(token, 'volume', 0));
+            const buys = getSafe(token, 'buys', 0);
+            const sells = getSafe(token, 'sells', 0);
+            const mint = getSafe(token, 'security.mint', getSafe(token, 'mintStatus', 'N/D'));
+            const freeze = getSafe(token, 'security.freeze', getSafe(token, 'freezeStatus', 'N/D'));
+
             html += `
                 <div class="card">
-                    <h3>#${index + 1} ${token.name || 'Unknown'} (${token.symbol || ''})</h3>
+                    <h3>#${index + 1} ${name} (${symbol})</h3>
                     <p>Score : <b>${score}/100</b></p>
-                    <p>💰 Market Cap : $${Number(token.marketCap || 0).toLocaleString()}</p>
-                    <p>💧 Liquidité : $${Number(token.liquidity || 0).toLocaleString()}</p>
-                    <p>📈 Volume : $${Number(token.volume || 0).toLocaleString()}</p>
-                    <p>🟢 Buy : ${token.buys || 0} | 🔴 Sell : ${token.sells || 0}</p>
-                    <p>🔐 Mint: ${token.mint || 'N/D'} | Freeze: ${token.freeze || 'N/D'}</p>
+                    <p>💰 Market Cap : $${Number(marketCap).toLocaleString()}</p>
+                    <p>💧 Liquidité : $${Number(liquidity).toLocaleString()}</p>
+                    <p>📈 Volume : $${Number(volume).toLocaleString()}</p>
+                    <p>🟢 Buy : ${buys} | 🔴 Sell : ${sells}</p>
+                    <p>🔐 Mint: ${mint} | Freeze: ${freeze}</p>
                     <p><b>${signal}</b></p>
                 </div>
             `;
         });
 
         results.innerHTML = html;
-        status.innerHTML = `✅ Scan terminé : ${data.tokens.length} tokens analysés (${data.durationMs || 0}ms)`;
+        status.innerHTML = `✅ Scan terminé : ${data.tokens.length} tokens analysés`;
 
     } catch (error) {
         console.error('New tokens scan error:', error);
