@@ -1,7 +1,6 @@
  // ============================================
-// RICHY HUNTER AI - FRONTEND v4.7
+// RICHY HUNTER AI - FRONTEND v4.8
 // Compatible avec Worker v15.0
-// Version avec diagnostic intégré
 // ============================================
 
 const WORKER_URL = "https://richy-hunter-api.kenedykabori104.workers.dev";
@@ -58,55 +57,23 @@ function formatNumber(num, style = "compact") {
 }
 
 // =======================
-// MISE À JOUR SÉCURISÉE AVEC DIAGNOSTIC
+// MISE À JOUR SÉCURISÉE
 // =======================
 function updateElement(id, value) {
     const el = document.getElementById(id);
     if (el) {
         el.textContent = value;
     } else {
-        console.warn(`⚠️ Élément #${id} introuvable dans le DOM. Vérifiez votre HTML.`);
+        console.warn(`⚠️ Élément #${id} introuvable`);
     }
-}
-
-function checkElement(id) {
-    const el = document.getElementById(id);
-    if (!el) {
-        console.warn(`⚠️ Élément #${id} manquant dans le DOM`);
-    }
-    return el !== null;
-}
-
-// =======================
-// VÉRIFICATION DES ÉLÉMENTS HTML AU CHARGEMENT
-// =======================
-function checkAllElements() {
-    const requiredIds = [
-        'tokenUrl', 'signal', 'score', 'liquidity', 'volume', 'marketCap',
-        'holders', 'whales', 'rug', 'mint', 'freeze', 'lpLock', 'holderRisk',
-        'smartMoney', 'alert', 'ruleLiquidity', 'ruleVolume', 'ruleSecurity'
-    ];
-    
-    console.log("🔍 Vérification des éléments HTML...");
-    let missing = [];
-    for (const id of requiredIds) {
-        if (!checkElement(id)) {
-            missing.push(id);
-        }
-    }
-    if (missing.length > 0) {
-        console.error(`❌ Éléments manquants : ${missing.join(', ')}`);
-        console.error("👉 Assurez-vous que votre HTML contient des éléments avec ces IDs.");
-    } else {
-        console.log("✅ Tous les éléments HTML sont présents.");
-    }
-    return missing;
 }
 
 // =======================
 // SCAN TOKEN
 // =======================
 async function scanToken() {
+    console.log("🔍 scanToken() appelée");
+
     const input = document.getElementById('tokenUrl');
     if (!input) {
         console.error("❌ Élément #tokenUrl introuvable");
@@ -128,28 +95,37 @@ async function scanToken() {
         return;
     }
 
+    console.log(`🔍 Token extrait : ${token}`);
+
     try {
         if (button) { button.disabled = true; button.innerHTML = '⏳ Analyse...'; }
 
         updateElement('signal', '⏳ Analyse AI en cours...');
         updateElement('score', '...');
 
-        console.log(`🔍 Analyse du token : ${token}`);
-        const response = await fetch(`${WORKER_URL}/?token=${encodeURIComponent(token)}`);
+        const fullUrl = `${WORKER_URL}/?token=${encodeURIComponent(token)}`;
+        console.log(`🌐 Appel au worker : ${fullUrl}`);
+
+        const response = await fetch(fullUrl);
+        console.log(`📡 Réponse reçue : status ${response.status}`);
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status} : ${response.statusText}`);
+        }
+
         const data = await response.json();
+        console.log("📊 Données reçues :", data);
 
         if (data.error) {
             alert('⚠️ ' + data.error);
             return;
         }
 
-        console.log("📊 Données reçues :", data);
-
         // ---------- SCORE ----------
         const score = getSafe(data, 'score', getSafe(data, 'scores.final', 0));
+        updateElement('score', score + '/100');
         const scoreEl = document.getElementById('score');
         if (scoreEl) {
-            scoreEl.textContent = score + '/100';
             scoreEl.style.color = score >= 75 ? '#22c55e' : score >= 55 ? '#eab308' : '#ef4444';
         }
 
@@ -169,8 +145,9 @@ async function scanToken() {
             signalText = '🔴 RUG WARNING';
             signalClass = 'avoid';
         }
+        updateElement('signal', signalText);
         const signalEl = document.getElementById('signal');
-        if (signalEl) { signalEl.textContent = signalText; signalEl.className = 'status ' + signalClass; }
+        if (signalEl) signalEl.className = 'status ' + signalClass;
 
         // ---------- MARKET DATA ----------
         const liquidity = getSafe(data, 'market.liquidity', getSafe(data, 'liquidity', 0));
@@ -179,9 +156,6 @@ async function scanToken() {
         const holders = getSafe(data, 'holders', getSafe(data, 'holdersDetail.count', null));
         const whaleRisk = getSafe(data, 'whaleRisk', getSafe(data, 'holdersDetail.whaleRisk', 'UNKNOWN'));
         const rugRisk = getSafe(data, 'rug', getSafe(data, 'security.rugRisk', getSafe(data, 'rugRisk', 'N/D')));
-
-        console.log(`📈 Volume brut : ${volume}, formaté : ${formatNumber(volume, "currency")}`);
-        console.log(`👥 Holders brut : ${holders}`);
 
         updateElement('liquidity', formatNumber(liquidity, "currency"));
         updateElement('volume', formatNumber(volume, "currency"));
@@ -220,8 +194,8 @@ async function scanToken() {
         console.log("✅ Analyse terminée avec succès.");
 
     } catch (error) {
-        console.error('❌ Scan error:', error);
-        alert('❌ Erreur : API ou Worker indisponible');
+        console.error('❌ Erreur lors du scan :', error);
+        alert('❌ Erreur : ' + error.message);
         updateElement('signal', '❌ Erreur de connexion');
     } finally {
         if (button) { button.disabled = false; button.innerHTML = 'Analyser Token'; }
@@ -232,6 +206,8 @@ async function scanToken() {
 // SCAN NEW TOKENS
 // =======================
 async function scanNewTokens() {
+    console.log("🔍 scanNewTokens() appelée");
+
     const status = document.getElementById('scannerStatus');
     const results = document.getElementById('results');
 
@@ -313,11 +289,7 @@ async function scanNewTokens() {
 // ENTER KEY SUPPORT
 // =======================
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("🚀 Richy Hunter AI Frontend chargé (v4.7)");
-    
-    // Vérifier les éléments HTML
-    checkAllElements();
-    
+    console.log("🚀 Richy Hunter AI Frontend chargé (v4.8)");
     const input = document.getElementById('tokenUrl');
     if (input) {
         input.addEventListener('keypress', function(e) {
