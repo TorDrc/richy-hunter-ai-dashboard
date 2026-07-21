@@ -1,5 +1,5 @@
  // ============================================
-// RICHY HUNTER AI - FRONTEND v4.9 (Debug)
+// RICHY HUNTER AI - FRONTEND v5.0
 // Compatible avec Worker v15.0
 // ============================================
 
@@ -29,7 +29,7 @@ function getSafe(data, path, defaultValue) {
 }
 
 // =======================
-// FORMATAGE
+// FORMATAGE ROBUSTE
 // =======================
 function formatNumber(num, style = "compact") {
     if (num === undefined || num === null) return "N/A";
@@ -69,7 +69,7 @@ function updateElement(id, value) {
 }
 
 // =======================
-// SCAN TOKEN (debug)
+// SCAN TOKEN
 // =======================
 async function scanToken() {
     console.log("🔍 scanToken() appelée");
@@ -156,6 +156,8 @@ async function scanToken() {
         const holders = getSafe(data, 'holders', getSafe(data, 'holdersDetail.count', null));
         const whaleRisk = getSafe(data, 'whaleRisk', getSafe(data, 'holdersDetail.whaleRisk', 'UNKNOWN'));
         const rugRisk = getSafe(data, 'rug', getSafe(data, 'security.rugRisk', getSafe(data, 'rugRisk', 'N/D')));
+        const buys = getSafe(data, 'buys', 0);
+        const sells = getSafe(data, 'sells', 0);
 
         updateElement('liquidity', formatNumber(liquidity, "currency"));
         updateElement('volume', formatNumber(volume, "currency"));
@@ -163,6 +165,8 @@ async function scanToken() {
         updateElement('holders', (holders !== null && holders !== undefined && holders > 0) ? holders.toLocaleString() : 'N/A');
         updateElement('whales', whaleRisk === 'UNKNOWN' ? 'Non évalué' : whaleRisk);
         updateElement('rug', (rugRisk === 'N/D' || rugRisk === 'UNKNOWN' || !rugRisk) ? 'Non évalué' : rugRisk);
+        updateElement('buyCount', buys.toLocaleString());
+        updateElement('sellCount', sells.toLocaleString());
 
         // ---------- SECURITY ----------
         const mint = getSafe(data, 'security.mint', getSafe(data, 'mintStatus', 'N/D'));
@@ -289,7 +293,7 @@ async function scanNewTokens() {
 // ENTER KEY SUPPORT
 // =======================
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("🚀 Richy Hunter AI Frontend chargé (v4.9)");
+    console.log("🚀 Richy Hunter AI Frontend chargé (v5.0)");
     const input = document.getElementById('tokenUrl');
     if (input) {
         input.addEventListener('keypress', function(e) {
