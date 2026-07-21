@@ -1,5 +1,5 @@
  // ============================================
-// RICHY HUNTER AI - FRONTEND v4.8
+// RICHY HUNTER AI - FRONTEND v4.9 (Debug)
 // Compatible avec Worker v15.0
 // ============================================
 
@@ -29,7 +29,7 @@ function getSafe(data, path, defaultValue) {
 }
 
 // =======================
-// FORMATAGE ROBUSTE
+// FORMATAGE
 // =======================
 function formatNumber(num, style = "compact") {
     if (num === undefined || num === null) return "N/A";
@@ -69,7 +69,7 @@ function updateElement(id, value) {
 }
 
 // =======================
-// SCAN TOKEN
+// SCAN TOKEN (debug)
 // =======================
 async function scanToken() {
     console.log("🔍 scanToken() appelée");
@@ -289,7 +289,7 @@ async function scanNewTokens() {
 // ENTER KEY SUPPORT
 // =======================
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("🚀 Richy Hunter AI Frontend chargé (v4.8)");
+    console.log("🚀 Richy Hunter AI Frontend chargé (v4.9)");
     const input = document.getElementById('tokenUrl');
     if (input) {
         input.addEventListener('keypress', function(e) {
