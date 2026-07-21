@@ -1,6 +1,7 @@
  // ============================================
-// RICHY HUNTER AI - FRONTEND v4.6
+// RICHY HUNTER AI - FRONTEND v4.7
 // Compatible avec Worker v15.0
+// Version avec diagnostic intégré
 // ============================================
 
 const WORKER_URL = "https://richy-hunter-api.kenedykabori104.workers.dev";
@@ -57,6 +58,52 @@ function formatNumber(num, style = "compact") {
 }
 
 // =======================
+// MISE À JOUR SÉCURISÉE AVEC DIAGNOSTIC
+// =======================
+function updateElement(id, value) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.textContent = value;
+    } else {
+        console.warn(`⚠️ Élément #${id} introuvable dans le DOM. Vérifiez votre HTML.`);
+    }
+}
+
+function checkElement(id) {
+    const el = document.getElementById(id);
+    if (!el) {
+        console.warn(`⚠️ Élément #${id} manquant dans le DOM`);
+    }
+    return el !== null;
+}
+
+// =======================
+// VÉRIFICATION DES ÉLÉMENTS HTML AU CHARGEMENT
+// =======================
+function checkAllElements() {
+    const requiredIds = [
+        'tokenUrl', 'signal', 'score', 'liquidity', 'volume', 'marketCap',
+        'holders', 'whales', 'rug', 'mint', 'freeze', 'lpLock', 'holderRisk',
+        'smartMoney', 'alert', 'ruleLiquidity', 'ruleVolume', 'ruleSecurity'
+    ];
+    
+    console.log("🔍 Vérification des éléments HTML...");
+    let missing = [];
+    for (const id of requiredIds) {
+        if (!checkElement(id)) {
+            missing.push(id);
+        }
+    }
+    if (missing.length > 0) {
+        console.error(`❌ Éléments manquants : ${missing.join(', ')}`);
+        console.error("👉 Assurez-vous que votre HTML contient des éléments avec ces IDs.");
+    } else {
+        console.log("✅ Tous les éléments HTML sont présents.");
+    }
+    return missing;
+}
+
+// =======================
 // SCAN TOKEN
 // =======================
 async function scanToken() {
@@ -84,11 +131,10 @@ async function scanToken() {
     try {
         if (button) { button.disabled = true; button.innerHTML = '⏳ Analyse...'; }
 
-        const signalEl = document.getElementById('signal');
-        const scoreEl = document.getElementById('score');
-        if (signalEl) signalEl.innerHTML = '⏳ Analyse AI en cours...';
-        if (scoreEl) { scoreEl.textContent = '...'; scoreEl.style.color = '#94a3b8'; }
+        updateElement('signal', '⏳ Analyse AI en cours...');
+        updateElement('score', '...');
 
+        console.log(`🔍 Analyse du token : ${token}`);
         const response = await fetch(`${WORKER_URL}/?token=${encodeURIComponent(token)}`);
         const data = await response.json();
 
@@ -97,8 +143,11 @@ async function scanToken() {
             return;
         }
 
+        console.log("📊 Données reçues :", data);
+
         // ---------- SCORE ----------
         const score = getSafe(data, 'score', getSafe(data, 'scores.final', 0));
+        const scoreEl = document.getElementById('score');
         if (scoreEl) {
             scoreEl.textContent = score + '/100';
             scoreEl.style.color = score >= 75 ? '#22c55e' : score >= 55 ? '#eab308' : '#ef4444';
@@ -120,6 +169,7 @@ async function scanToken() {
             signalText = '🔴 RUG WARNING';
             signalClass = 'avoid';
         }
+        const signalEl = document.getElementById('signal');
         if (signalEl) { signalEl.textContent = signalText; signalEl.className = 'status ' + signalClass; }
 
         // ---------- MARKET DATA ----------
@@ -130,7 +180,9 @@ async function scanToken() {
         const whaleRisk = getSafe(data, 'whaleRisk', getSafe(data, 'holdersDetail.whaleRisk', 'UNKNOWN'));
         const rugRisk = getSafe(data, 'rug', getSafe(data, 'security.rugRisk', getSafe(data, 'rugRisk', 'N/D')));
 
-        // Mise à jour sécurisée des éléments HTML
+        console.log(`📈 Volume brut : ${volume}, formaté : ${formatNumber(volume, "currency")}`);
+        console.log(`👥 Holders brut : ${holders}`);
+
         updateElement('liquidity', formatNumber(liquidity, "currency"));
         updateElement('volume', formatNumber(volume, "currency"));
         updateElement('marketCap', formatNumber(marketCap, "compact"));
@@ -165,32 +217,14 @@ async function scanToken() {
         updateElement('ruleVolume', vol > 100000 ? '✅ Volume en croissance' : vol > 50000 ? '🟡 Volume modéré' : '❌ Volume faible');
         updateElement('ruleSecurity', isSecure ? '✅ Sécurité contrat vérifiée' : '⚠️ Contrat à vérifier');
 
-        if (data.scores) {
-            console.log('Scores détaillés:', data.scores);
-        }
+        console.log("✅ Analyse terminée avec succès.");
 
     } catch (error) {
-        console.error('Scan error:', error);
+        console.error('❌ Scan error:', error);
         alert('❌ Erreur : API ou Worker indisponible');
-        const signalEl = document.getElementById('signal');
-        if (signalEl) signalEl.textContent = '❌ Erreur de connexion';
+        updateElement('signal', '❌ Erreur de connexion');
     } finally {
         if (button) { button.disabled = false; button.innerHTML = 'Analyser Token'; }
-    }
-}
-
-// =======================
-// MISE À JOUR SÉCURISÉE DES ÉLÉMENTS DOM
-// =======================
-function updateElement(id, value) {
-    const el = document.getElementById(id);
-    if (el) {
-        el.textContent = value;
-    } else {
-        // En mode développement, on log pour débugger
-        if (console && console.debug) {
-            console.debug(`⚠️ Élément #${id} introuvable dans le DOM`);
-        }
     }
 }
 
@@ -279,6 +313,11 @@ async function scanNewTokens() {
 // ENTER KEY SUPPORT
 // =======================
 document.addEventListener('DOMContentLoaded', function() {
+    console.log("🚀 Richy Hunter AI Frontend chargé (v4.7)");
+    
+    // Vérifier les éléments HTML
+    checkAllElements();
+    
     const input = document.getElementById('tokenUrl');
     if (input) {
         input.addEventListener('keypress', function(e) {
