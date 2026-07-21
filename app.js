@@ -1,6 +1,6 @@
  // ============================================
-// RICHY HUNTER AI - FRONTEND v5.0
-// Compatible avec Worker v15.0
+// RICHY HUNTER AI - FRONTEND v5.1 (avec âge)
+// Compatible avec Worker v15.1
 // ============================================
 
 const WORKER_URL = "https://richy-hunter-api.kenedykabori104.workers.dev";
@@ -28,9 +28,6 @@ function getSafe(data, path, defaultValue) {
     return current !== undefined && current !== null ? current : defaultValue;
 }
 
-// =======================
-// FORMATAGE ROBUSTE
-// =======================
 function formatNumber(num, style = "compact") {
     if (num === undefined || num === null) return "N/A";
     const n = Number(num);
@@ -56,9 +53,6 @@ function formatNumber(num, style = "compact") {
     return n.toLocaleString('en-US', { maximumFractionDigits: 2 });
 }
 
-// =======================
-// MISE À JOUR SÉCURISÉE
-// =======================
 function updateElement(id, value) {
     const el = document.getElementById(id);
     if (el) {
@@ -159,6 +153,22 @@ async function scanToken() {
         const buys = getSafe(data, 'buys', 0);
         const sells = getSafe(data, 'sells', 0);
 
+        // Âge du token
+        const createdAt = getSafe(data, 'token.createdAt', null);
+        const ageDays = getSafe(data, 'token.ageDays', null);
+        let ageText = 'N/A';
+        if (ageDays !== null && ageDays !== undefined) {
+            if (ageDays < 1) ageText = '< 1 jour';
+            else if (ageDays === 1) ageText = '1 jour';
+            else ageText = ageDays + ' jours';
+        } else if (createdAt) {
+            // fallback si ageDays non calculé
+            const days = Math.floor((Date.now() - new Date(createdAt).getTime()) / 86400000);
+            if (days < 1) ageText = '< 1 jour';
+            else if (days === 1) ageText = '1 jour';
+            else ageText = days + ' jours';
+        }
+
         updateElement('liquidity', formatNumber(liquidity, "currency"));
         updateElement('volume', formatNumber(volume, "currency"));
         updateElement('marketCap', formatNumber(marketCap, "compact"));
@@ -167,6 +177,7 @@ async function scanToken() {
         updateElement('rug', (rugRisk === 'N/D' || rugRisk === 'UNKNOWN' || !rugRisk) ? 'Non évalué' : rugRisk);
         updateElement('buyCount', buys.toLocaleString());
         updateElement('sellCount', sells.toLocaleString());
+        updateElement('tokenAge', ageText);
 
         // ---------- SECURITY ----------
         const mint = getSafe(data, 'security.mint', getSafe(data, 'mintStatus', 'N/D'));
@@ -293,7 +304,7 @@ async function scanNewTokens() {
 // ENTER KEY SUPPORT
 // =======================
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("🚀 Richy Hunter AI Frontend chargé (v5.0)");
+    console.log("🚀 Richy Hunter AI Frontend chargé (v5.1)");
     const input = document.getElementById('tokenUrl');
     if (input) {
         input.addEventListener('keypress', function(e) {
