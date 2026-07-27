@@ -25,6 +25,15 @@
             placeholder="Colle ton lien DexScreener ou adresse Solana"
             autocomplete="off"
         >
+        <!-- NOUVEAU : Choix du mode d'analyse -->
+        <div style="margin: 10px 0;">
+            <label>
+                <input type="radio" name="analysisMode" value="fast" checked> Rapide
+            </label>
+            <label style="margin-left: 15px;">
+                <input type="radio" name="analysisMode" value="institutional"> Institutionnel
+            </label>
+        </div>
         <button type="button" onclick="scanToken()">Analyser Token</button>
     </section>
 
@@ -44,7 +53,7 @@
         <p>Top Holder Risk : <span id="holderRisk">--</span></p>
     </section>
 
-    <!-- SMART MONEY -->
+    <!-- SMART MONEY (amélioré) -->
     <section class="card">
         <h2>🔥 SMART MONEY</h2>
         <p id="smartMoney">Analyse Helius prochaine étape</p>
@@ -68,6 +77,15 @@
         <p>🟢 Buy : <span id="buyCount">--</span></p>
         <p>🔴 Sell : <span id="sellCount">--</span></p>
         <p>📅 Âge : <span id="tokenAge">--</span></p>
+        <!-- NOUVEAU : Qualité des données -->
+        <p>📊 Qualité données : <span id="dataQuality">--</span></p>
+    </section>
+
+    <!-- NOUVEAU : Signal Meta -->
+    <section class="card">
+        <h2>📌 Méta Signal</h2>
+        <p>Mode : <span id="signalMode">--</span></p>
+        <p>Timestamp : <span id="signalTimestamp">--</span></p>
     </section>
 
     <!-- RULES -->
@@ -93,7 +111,7 @@
     </section>
 
     <footer>
-        Richy Hunter AI v2.0<br>
+        Richy Hunter AI v2.1<br>
         Solana Memecoin Intelligence System
     </footer>
 
