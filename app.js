@@ -1,6 +1,6 @@
  // ============================================
-// RICHY HUNTER AI - FRONTEND v5.1 (avec âge)
-// Compatible avec Worker v15.1
+// RICHY HUNTER AI - FRONTEND v5.2 (compatible Worker v17.2)
+// Modifications : mode analyse, dataQuality, signalMeta, smart money amélioré
 // ============================================
 
 const WORKER_URL = "https://richy-hunter-api.kenedykabori104.workers.dev";
@@ -62,6 +62,19 @@ function updateElement(id, value) {
     }
 }
 
+// NOUVEAU : Fonction de coloration conditionnelle pour les statuts
+function setColor(id, value) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (value === 'REVOKED' || value === 'SAFE') {
+        el.style.color = '#22c55e';
+    } else if (value === 'ACTIVE' || value === 'CRITICAL') {
+        el.style.color = '#ef4444';
+    } else {
+        el.style.color = 'inherit';
+    }
+}
+
 // =======================
 // SCAN TOKEN
 // =======================
@@ -75,7 +88,7 @@ async function scanToken() {
         return;
     }
 
-    const button = input.nextElementSibling;
+    const button = input.nextElementSibling; // Le bouton est après le div radio
     let url = input.value.trim();
 
     if (!url) {
@@ -92,12 +105,17 @@ async function scanToken() {
     console.log(`🔍 Token extrait : ${token}`);
 
     try {
-        if (button) { button.disabled = true; button.innerHTML = '⏳ Analyse...'; }
+        // Désactiver le bouton et afficher le chargement
+        const allButtons = document.querySelectorAll('button');
+        allButtons.forEach(btn => btn.disabled = true);
+        if (button) button.innerHTML = '⏳ Analyse...';
 
         updateElement('signal', '⏳ Analyse AI en cours...');
         updateElement('score', '...');
 
-        const fullUrl = `${WORKER_URL}/?token=${encodeURIComponent(token)}`;
+        // NOUVEAU : Récupérer le mode d'analyse sélectionné
+        const analysisMode = document.querySelector('input[name="analysisMode"]:checked')?.value || 'fast';
+        const fullUrl = `${WORKER_URL}/?token=${encodeURIComponent(token)}&analysis=${analysisMode}`;
         console.log(`🌐 Appel au worker : ${fullUrl}`);
 
         const response = await fetch(fullUrl);
@@ -162,7 +180,6 @@ async function scanToken() {
             else if (ageDays === 1) ageText = '1 jour';
             else ageText = ageDays + ' jours';
         } else if (createdAt) {
-            // fallback si ageDays non calculé
             const days = Math.floor((Date.now() - new Date(createdAt).getTime()) / 86400000);
             if (days < 1) ageText = '< 1 jour';
             else if (days === 1) ageText = '1 jour';
@@ -179,6 +196,10 @@ async function scanToken() {
         updateElement('sellCount', sells.toLocaleString());
         updateElement('tokenAge', ageText);
 
+        // NOUVEAU : Qualité des données
+        const dataQuality = getSafe(data, 'dataQuality', 'N/A');
+        updateElement('dataQuality', dataQuality);
+
         // ---------- SECURITY ----------
         const mint = getSafe(data, 'security.mint', getSafe(data, 'mintStatus', 'N/D'));
         const freeze = getSafe(data, 'security.freeze', getSafe(data, 'freezeStatus', 'N/D'));
@@ -190,12 +211,32 @@ async function scanToken() {
         updateElement('lpLock', lpLock === true ? 'OUI' : lpLock === false ? 'NON' : 'N/D');
         updateElement('holderRisk', holderRisk === 'UNKNOWN' ? 'Non évalué' : holderRisk);
 
-        // ---------- SMART MONEY ----------
-        const smartMoney = getSafe(data, 'smartMoney', getSafe(data, 'smartMoneyDetail.score', 0));
-        updateElement('smartMoney', smartMoney > 0 ? smartMoney + '/100' : 'Analyse Helius prochaine étape');
+        // NOUVEAU : Coloration sécurité
+        setColor('mint', mint);
+        setColor('freeze', freeze);
+
+        // ---------- SMART MONEY (amélioré) ----------
+        const smartMoneyScore = getSafe(data, 'smartMoneyDetail.score', getSafe(data, 'smartMoney', 0));
+        const wallets = getSafe(data, 'smartMoneyDetail.walletsDetected', []);
+        let smartHtml = '';
+        if (wallets.length > 0) {
+            smartHtml = wallets.map(w => {
+                const sourceIcon = w.source === 'verified' ? '✅' : '🔍';
+                return `${sourceIcon} ${w.label || 'Wallet'} (${w.percent}%) - confiance ${w.confidence}%`;
+            }).join('<br>');
+            smartHtml += `<br>Score total : ${smartMoneyScore}/100`;
+        } else {
+            smartHtml = 'Aucun smart wallet détecté.';
+        }
+        updateElement('smartMoney', smartHtml);
 
         // ---------- ALERT ----------
         updateElement('alert', alertMsg || 'Aucune alerte');
+
+        // NOUVEAU : Signal Meta
+        const signalMeta = data.signalMeta;
+        updateElement('signalMode', signalMeta?.entryMode || 'N/A');
+        updateElement('signalTimestamp', signalMeta?.signalTimestamp ? new Date(signalMeta.signalTimestamp).toLocaleString() : 'N/A');
 
         // ---------- RULES ----------
         const liq = Number(liquidity);
@@ -213,12 +254,15 @@ async function scanToken() {
         alert('❌ Erreur : ' + error.message);
         updateElement('signal', '❌ Erreur de connexion');
     } finally {
-        if (button) { button.disabled = false; button.innerHTML = 'Analyser Token'; }
+        // Réactiver tous les boutons
+        const allButtons = document.querySelectorAll('button');
+        allButtons.forEach(btn => btn.disabled = false);
+        if (button) button.innerHTML = 'Analyser Token';
     }
 }
 
 // =======================
-// SCAN NEW TOKENS
+// SCAN NEW TOKENS (inchangé mais mis à jour avec les nouveaux champs si nécessaire)
 // =======================
 async function scanNewTokens() {
     console.log("🔍 scanNewTokens() appelée");
@@ -230,6 +274,7 @@ async function scanNewTokens() {
         if (status) status.innerHTML = '⏳ Recherche nouveaux Solana Gems...';
         if (results) results.innerHTML = '<p>🔍 Scan en cours...</p>';
 
+        // Le scan new tokens utilise toujours le mode fast pour la rapidité
         const response = await fetch(`${WORKER_URL}/?mode=new`);
         const data = await response.json();
 
@@ -304,7 +349,7 @@ async function scanNewTokens() {
 // ENTER KEY SUPPORT
 // =======================
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("🚀 Richy Hunter AI Frontend chargé (v5.1)");
+    console.log("🚀 Richy Hunter AI Frontend chargé (v5.2)");
     const input = document.getElementById('tokenUrl');
     if (input) {
         input.addEventListener('keypress', function(e) {
