@@ -58,11 +58,8 @@ function formatNumber(num, style = "compact") {
 
 function updateElement(id, value) {
     const el = document.getElementById(id);
-    if (el) {
-        el.textContent = value;
-    } else {
-        console.warn(`⚠️ Élément #${id} introuvable`);
-    }
+    if (el) el.textContent = value;
+    else console.warn(`⚠️ Élément #${id} introuvable`);
 }
 
 function setElementHTML(id, html) {
@@ -96,9 +93,7 @@ async function scanToken() {
         return;
     }
 
-    const button = input.nextElementSibling; // Le bouton est après le div radio
     let url = input.value.trim();
-
     if (!url) {
         alert('📌 Colle un lien DexScreener ou une adresse Solana');
         return;
@@ -112,35 +107,35 @@ async function scanToken() {
 
     console.log(`🔍 Token extrait : ${token}`);
 
+    // Désactiver les boutons
+    const allButtons = document.querySelectorAll('button');
+    allButtons.forEach(btn => btn.disabled = true);
+    const button = input.nextElementSibling?.nextElementSibling?.nextElementSibling; // bouton après les divs
+    // Plus robuste : on sélectionne le bouton par son texte ou onclick
+    const analyzeBtn = document.querySelector('button[onclick="scanToken()"]');
+    if (analyzeBtn) analyzeBtn.innerHTML = '⏳ Analyse...';
+
+    updateElement('signal', '⏳ Analyse AI en cours...');
+    updateElement('score', '...');
+
+    // Mode d'analyse
+    const analysisMode = document.querySelector('input[name="analysisMode"]:checked')?.value || 'fast';
+    // Contrôle d’exécution
+    const checkExec = document.getElementById('checkExecution')?.checked;
+    const execSize = document.getElementById('execSize')?.value || 1000;
+    const execSizeNum = parseInt(execSize) || 1000;
+
+    let apiUrl = `${WORKER_URL}/?token=${encodeURIComponent(token)}&analysis=${analysisMode}`;
+    if (checkExec) {
+        apiUrl += `&execution=true&execSize=${execSizeNum}`;
+    }
+    console.log(`🌐 Appel au worker : ${apiUrl}`);
+
     try {
-        // Désactiver les boutons et afficher le chargement
-        const allButtons = document.querySelectorAll('button');
-        allButtons.forEach(btn => btn.disabled = true);
-        if (button) button.innerHTML = '⏳ Analyse...';
-
-        updateElement('signal', '⏳ Analyse AI en cours...');
-        updateElement('score', '...');
-
-        // Mode d'analyse
-        const analysisMode = document.querySelector('input[name="analysisMode"]:checked')?.value || 'fast';
-        // Contrôle d’exécution
-        const checkExec = document.getElementById('checkExecution')?.checked;
-        const execSize = document.getElementById('execSize')?.value || 1000; // taille par défaut 1000 USDC
-        const execSizeNum = parseInt(execSize) || 1000;
-
-        let apiUrl = `${WORKER_URL}/?token=${encodeURIComponent(token)}&analysis=${analysisMode}`;
-        if (checkExec) {
-            apiUrl += `&execution=true&execSize=${execSizeNum}`;
-        }
-        console.log(`🌐 Appel au worker : ${apiUrl}`);
-
         const response = await fetch(apiUrl);
         console.log(`📡 Réponse reçue : status ${response.status}`);
 
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status} : ${response.statusText}`);
-        }
-
+        if (!response.ok) throw new Error(`HTTP ${response.status} : ${response.statusText}`);
         const data = await response.json();
         console.log("📊 Données reçues :", data);
 
@@ -149,20 +144,18 @@ async function scanToken() {
             return;
         }
 
-        // ---------- BADGE MODE D'ANALYSE ----------
-        const analysisModeBadge = document.getElementById('analysisModeBadge');
-        if (analysisModeBadge) {
-            analysisModeBadge.textContent = analysisMode === 'institutional' ? '🔬 Institutionnel' : '⚡ Rapide';
-            analysisModeBadge.style.display = 'inline-block';
+        // Badge mode d’analyse
+        const badge = document.getElementById('analysisModeBadge');
+        if (badge) {
+            badge.textContent = analysisMode === 'institutional' ? '🔬 Institutionnel' : '⚡ Rapide';
+            badge.style.display = 'inline-block';
         }
 
         // ---------- SCORE ----------
         const score = getSafe(data, 'score', getSafe(data, 'scores.final', 0));
         updateElement('score', score + '/100');
         const scoreEl = document.getElementById('score');
-        if (scoreEl) {
-            scoreEl.style.color = score >= 75 ? '#22c55e' : score >= 55 ? '#eab308' : '#ef4444';
-        }
+        if (scoreEl) scoreEl.style.color = score >= 75 ? '#22c55e' : score >= 55 ? '#eab308' : '#ef4444';
 
         // ---------- SIGNAL ----------
         const alertMsg = getSafe(data, 'decision.alert', getSafe(data, 'alert', ''));
@@ -184,7 +177,7 @@ async function scanToken() {
         const signalEl = document.getElementById('signal');
         if (signalEl) signalEl.className = 'status ' + signalClass;
 
-        // ---------- MARKET DATA ----------
+        // ---------- MARKET ----------
         const liquidity = getSafe(data, 'market.liquidity', getSafe(data, 'liquidity', 0));
         const volume = getSafe(data, 'market.volume', getSafe(data, 'volume', 0));
         const marketCap = getSafe(data, 'market.marketCap', getSafe(data, 'marketCap', 0));
@@ -194,7 +187,7 @@ async function scanToken() {
         const buys = getSafe(data, 'buys', 0);
         const sells = getSafe(data, 'sells', 0);
 
-        // Âge du token
+        // Âge
         const createdAt = getSafe(data, 'token.createdAt', null);
         const ageDays = getSafe(data, 'token.ageDays', null);
         let ageText = 'N/A';
@@ -212,16 +205,13 @@ async function scanToken() {
         updateElement('liquidity', formatNumber(liquidity, "currency"));
         updateElement('volume', formatNumber(volume, "currency"));
         updateElement('marketCap', formatNumber(marketCap, "compact"));
-        updateElement('holders', (holders !== null && holders !== undefined && holders > 0) ? holders.toLocaleString() : 'N/A');
+        updateElement('holders', (holders !== null && holders > 0) ? holders.toLocaleString() : 'N/A');
         updateElement('whales', whaleRisk === 'UNKNOWN' ? 'Non évalué' : whaleRisk);
         updateElement('rug', (rugRisk === 'N/D' || rugRisk === 'UNKNOWN' || !rugRisk) ? 'Non évalué' : rugRisk);
         updateElement('buyCount', buys.toLocaleString());
         updateElement('sellCount', sells.toLocaleString());
         updateElement('tokenAge', ageText);
-
-        // Qualité des données
-        const dataQuality = getSafe(data, 'dataQuality', 'N/A');
-        updateElement('dataQuality', dataQuality);
+        updateElement('dataQuality', getSafe(data, 'dataQuality', 'N/A'));
 
         // ---------- SECURITY ----------
         const mint = getSafe(data, 'security.mint', getSafe(data, 'mintStatus', 'N/D'));
@@ -233,7 +223,6 @@ async function scanToken() {
         updateElement('freeze', freeze);
         updateElement('lpLock', lpLock === true ? 'OUI' : lpLock === false ? 'NON' : 'N/D');
         updateElement('holderRisk', holderRisk === 'UNKNOWN' ? 'Non évalué' : holderRisk);
-
         setColor('mint', mint);
         setColor('freeze', freeze);
 
@@ -255,15 +244,16 @@ async function scanToken() {
         // ---------- ALERT ----------
         updateElement('alert', alertMsg || 'Aucune alerte');
 
-        // Signal Meta
+        // Méta Signal
         const signalMeta = data.signalMeta;
         updateElement('signalMode', signalMeta?.entryMode || 'N/A');
         updateElement('signalTimestamp', signalMeta?.signalTimestamp ? new Date(signalMeta.signalTimestamp).toLocaleString() : 'N/A');
 
-        // ---------- EXECUTION (JUPITER) ----------
+        // ---------- EXÉCUTION ----------
         const exec = data.execution;
+        const execSection = document.getElementById('executionSection');
         const execDetails = document.getElementById('executionDetails');
-        if (exec && execDetails) {
+        if (exec && execSection && execDetails) {
             let execHtml = '';
             if (exec.available) {
                 const route = exec.route?.join(' → ') || 'N/A';
@@ -274,22 +264,20 @@ async function scanToken() {
                 execHtml = '⚠️ Aucune route disponible (liquidité insuffisante ?)';
             }
             execDetails.innerHTML = execHtml;
-            execDetails.style.display = 'block';
-        } else if (execDetails) {
-            execDetails.style.display = 'none';
+            execSection.style.display = 'block';
+        } else if (execSection) {
+            execSection.style.display = 'none';
         }
 
         // ---------- RULES ----------
         const liq = Number(liquidity);
         const vol = Number(volume);
         const isSecure = (mint === 'REVOKED' || mint === 'SAFE') && (freeze === 'REVOKED' || freeze === 'SAFE');
-
         updateElement('ruleLiquidity', liq > 30000 ? '✅ Liquidité suffisante' : liq > 10000 ? '🟡 Liquidité moyenne' : '❌ Liquidité faible');
         updateElement('ruleVolume', vol > 100000 ? '✅ Volume en croissance' : vol > 50000 ? '🟡 Volume modéré' : '❌ Volume faible');
         updateElement('ruleSecurity', isSecure ? '✅ Sécurité contrat vérifiée' : '⚠️ Contrat à vérifier');
 
         console.log("✅ Analyse terminée avec succès.");
-
     } catch (error) {
         console.error('❌ Erreur lors du scan :', error);
         alert('❌ Erreur : ' + error.message);
@@ -297,13 +285,13 @@ async function scanToken() {
     } finally {
         const allButtons = document.querySelectorAll('button');
         allButtons.forEach(btn => btn.disabled = false);
-        const button = document.getElementById('tokenUrl')?.nextElementSibling;
-        if (button) button.innerHTML = 'Analyser Token';
+        const analyzeBtn2 = document.querySelector('button[onclick="scanToken()"]');
+        if (analyzeBtn2) analyzeBtn2.innerHTML = 'Analyser Token';
     }
 }
 
 // =======================
-// SCAN NEW TOKENS (inchangé mais mis à jour avec les nouveaux champs si nécessaire)
+// SCAN NEW TOKENS
 // =======================
 async function scanNewTokens() {
     console.log("🔍 scanNewTokens() appelée");
@@ -401,6 +389,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Exposer les fonctions globalement
+// Exposer globalement
 window.scanToken = scanToken;
 window.scanNewTokens = scanNewTokens;
