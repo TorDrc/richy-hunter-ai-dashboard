@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -12,7 +12,7 @@
 <div class="app">
 
     <header>
-        <h1>🚀 Richy Hunter AI</h1>
+        <h1>🚀 Richy Hunter AI <span id="analysisModeBadge" style="display:none; font-size:0.8em; margin-left:10px;"></span></h1>
         <p>Solana Memecoin Intelligence Scanner</p>
     </header>
 
@@ -25,7 +25,7 @@
             placeholder="Colle ton lien DexScreener ou adresse Solana"
             autocomplete="off"
         >
-        <!-- NOUVEAU : Choix du mode d'analyse -->
+        <!-- Choix du mode d'analyse -->
         <div style="margin: 10px 0;">
             <label>
                 <input type="radio" name="analysisMode" value="fast" checked> Rapide
@@ -33,6 +33,14 @@
             <label style="margin-left: 15px;">
                 <input type="radio" name="analysisMode" value="institutional"> Institutionnel
             </label>
+        </div>
+        <!-- Contrôle exécution Jupiter -->
+        <div style="margin: 10px 0;">
+            <label>
+                <input type="checkbox" id="checkExecution">
+                Contrôle exécution (slippage Jupiter)
+            </label>
+            <input type="number" id="execSize" placeholder="Taille (USDC)" value="1000" min="10" style="width:100px; margin-left:8px;">
         </div>
         <button type="button" onclick="scanToken()">Analyser Token</button>
     </section>
@@ -53,7 +61,7 @@
         <p>Top Holder Risk : <span id="holderRisk">--</span></p>
     </section>
 
-    <!-- SMART MONEY (amélioré) -->
+    <!-- SMART MONEY -->
     <section class="card">
         <h2>🔥 SMART MONEY</h2>
         <p id="smartMoney">Analyse Helius prochaine étape</p>
@@ -77,15 +85,20 @@
         <p>🟢 Buy : <span id="buyCount">--</span></p>
         <p>🔴 Sell : <span id="sellCount">--</span></p>
         <p>📅 Âge : <span id="tokenAge">--</span></p>
-        <!-- NOUVEAU : Qualité des données -->
         <p>📊 Qualité données : <span id="dataQuality">--</span></p>
     </section>
 
-    <!-- NOUVEAU : Signal Meta -->
+    <!-- Méta Signal -->
     <section class="card">
         <h2>📌 Méta Signal</h2>
         <p>Mode : <span id="signalMode">--</span></p>
         <p>Timestamp : <span id="signalTimestamp">--</span></p>
+    </section>
+
+    <!-- EXÉCUTION JUPITER -->
+    <section class="card" id="executionSection" style="display:none;">
+        <h2>🚀 Exécution (Jupiter)</h2>
+        <div id="executionDetails"></div>
     </section>
 
     <!-- RULES -->
@@ -111,7 +124,7 @@
     </section>
 
     <footer>
-        Richy Hunter AI v2.1<br>
+        Richy Hunter AI v6.0<br>
         Solana Memecoin Intelligence System
     </footer>
 
