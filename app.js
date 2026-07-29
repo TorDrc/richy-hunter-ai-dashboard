@@ -1,6 +1,9 @@
- // ============================================
-// RICHY HUNTER AI - FRONTEND v5.2 (compatible Worker v17.2)
-// Modifications : mode analyse, dataQuality, signalMeta, smart money amélioré
+// ============================================
+// RICHY HUNTER AI - FRONTEND v6.0 (compatible Worker v18.0)
+// Modifications :
+//   - Ajout du contrôle d’exécution (slippage Jupiter)
+//   - Affichage du mode d’analyse et des résultats d’exécution
+//   - Paramètres `analysis`, `execution`, `execSize` dans l’URL
 // ============================================
 
 const WORKER_URL = "https://richy-hunter-api.kenedykabori104.workers.dev";
@@ -62,7 +65,12 @@ function updateElement(id, value) {
     }
 }
 
-// NOUVEAU : Fonction de coloration conditionnelle pour les statuts
+function setElementHTML(id, html) {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = html;
+    else console.warn(`⚠️ Élément #${id} introuvable`);
+}
+
 function setColor(id, value) {
     const el = document.getElementById(id);
     if (!el) return;
@@ -105,7 +113,7 @@ async function scanToken() {
     console.log(`🔍 Token extrait : ${token}`);
 
     try {
-        // Désactiver le bouton et afficher le chargement
+        // Désactiver les boutons et afficher le chargement
         const allButtons = document.querySelectorAll('button');
         allButtons.forEach(btn => btn.disabled = true);
         if (button) button.innerHTML = '⏳ Analyse...';
@@ -113,12 +121,20 @@ async function scanToken() {
         updateElement('signal', '⏳ Analyse AI en cours...');
         updateElement('score', '...');
 
-        // NOUVEAU : Récupérer le mode d'analyse sélectionné
+        // Mode d'analyse
         const analysisMode = document.querySelector('input[name="analysisMode"]:checked')?.value || 'fast';
-        const fullUrl = `${WORKER_URL}/?token=${encodeURIComponent(token)}&analysis=${analysisMode}`;
-        console.log(`🌐 Appel au worker : ${fullUrl}`);
+        // Contrôle d’exécution
+        const checkExec = document.getElementById('checkExecution')?.checked;
+        const execSize = document.getElementById('execSize')?.value || 1000; // taille par défaut 1000 USDC
+        const execSizeNum = parseInt(execSize) || 1000;
 
-        const response = await fetch(fullUrl);
+        let apiUrl = `${WORKER_URL}/?token=${encodeURIComponent(token)}&analysis=${analysisMode}`;
+        if (checkExec) {
+            apiUrl += `&execution=true&execSize=${execSizeNum}`;
+        }
+        console.log(`🌐 Appel au worker : ${apiUrl}`);
+
+        const response = await fetch(apiUrl);
         console.log(`📡 Réponse reçue : status ${response.status}`);
 
         if (!response.ok) {
@@ -131,6 +147,13 @@ async function scanToken() {
         if (data.error) {
             alert('⚠️ ' + data.error);
             return;
+        }
+
+        // ---------- BADGE MODE D'ANALYSE ----------
+        const analysisModeBadge = document.getElementById('analysisModeBadge');
+        if (analysisModeBadge) {
+            analysisModeBadge.textContent = analysisMode === 'institutional' ? '🔬 Institutionnel' : '⚡ Rapide';
+            analysisModeBadge.style.display = 'inline-block';
         }
 
         // ---------- SCORE ----------
@@ -196,7 +219,7 @@ async function scanToken() {
         updateElement('sellCount', sells.toLocaleString());
         updateElement('tokenAge', ageText);
 
-        // NOUVEAU : Qualité des données
+        // Qualité des données
         const dataQuality = getSafe(data, 'dataQuality', 'N/A');
         updateElement('dataQuality', dataQuality);
 
@@ -211,11 +234,10 @@ async function scanToken() {
         updateElement('lpLock', lpLock === true ? 'OUI' : lpLock === false ? 'NON' : 'N/D');
         updateElement('holderRisk', holderRisk === 'UNKNOWN' ? 'Non évalué' : holderRisk);
 
-        // NOUVEAU : Coloration sécurité
         setColor('mint', mint);
         setColor('freeze', freeze);
 
-        // ---------- SMART MONEY (amélioré) ----------
+        // ---------- SMART MONEY ----------
         const smartMoneyScore = getSafe(data, 'smartMoneyDetail.score', getSafe(data, 'smartMoney', 0));
         const wallets = getSafe(data, 'smartMoneyDetail.walletsDetected', []);
         let smartHtml = '';
@@ -228,15 +250,34 @@ async function scanToken() {
         } else {
             smartHtml = 'Aucun smart wallet détecté.';
         }
-        updateElement('smartMoney', smartHtml);
+        setElementHTML('smartMoney', smartHtml);
 
         // ---------- ALERT ----------
         updateElement('alert', alertMsg || 'Aucune alerte');
 
-        // NOUVEAU : Signal Meta
+        // Signal Meta
         const signalMeta = data.signalMeta;
         updateElement('signalMode', signalMeta?.entryMode || 'N/A');
         updateElement('signalTimestamp', signalMeta?.signalTimestamp ? new Date(signalMeta.signalTimestamp).toLocaleString() : 'N/A');
+
+        // ---------- EXECUTION (JUPITER) ----------
+        const exec = data.execution;
+        const execDetails = document.getElementById('executionDetails');
+        if (exec && execDetails) {
+            let execHtml = '';
+            if (exec.available) {
+                const route = exec.route?.join(' → ') || 'N/A';
+                const impact = exec.priceImpactPct != null ? exec.priceImpactPct + '%' : 'N/A';
+                const slippage = exec.estimatedSlippage != null ? exec.estimatedSlippage + '%' : 'N/A';
+                execHtml = `💱 Route : ${route}<br>📉 Impact prix : ${impact}<br>📊 Slippage estimé : ${slippage}`;
+            } else {
+                execHtml = '⚠️ Aucune route disponible (liquidité insuffisante ?)';
+            }
+            execDetails.innerHTML = execHtml;
+            execDetails.style.display = 'block';
+        } else if (execDetails) {
+            execDetails.style.display = 'none';
+        }
 
         // ---------- RULES ----------
         const liq = Number(liquidity);
@@ -254,9 +295,9 @@ async function scanToken() {
         alert('❌ Erreur : ' + error.message);
         updateElement('signal', '❌ Erreur de connexion');
     } finally {
-        // Réactiver tous les boutons
         const allButtons = document.querySelectorAll('button');
         allButtons.forEach(btn => btn.disabled = false);
+        const button = document.getElementById('tokenUrl')?.nextElementSibling;
         if (button) button.innerHTML = 'Analyser Token';
     }
 }
@@ -274,7 +315,6 @@ async function scanNewTokens() {
         if (status) status.innerHTML = '⏳ Recherche nouveaux Solana Gems...';
         if (results) results.innerHTML = '<p>🔍 Scan en cours...</p>';
 
-        // Le scan new tokens utilise toujours le mode fast pour la rapidité
         const response = await fetch(`${WORKER_URL}/?mode=new`);
         const data = await response.json();
 
@@ -349,7 +389,7 @@ async function scanNewTokens() {
 // ENTER KEY SUPPORT
 // =======================
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("🚀 Richy Hunter AI Frontend chargé (v5.2)");
+    console.log("🚀 Richy Hunter AI Frontend chargé (v6.0)");
     const input = document.getElementById('tokenUrl');
     if (input) {
         input.addEventListener('keypress', function(e) {
