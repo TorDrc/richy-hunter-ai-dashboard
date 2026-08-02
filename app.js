@@ -1,26 +1,43 @@
-// ============================================
-// RICHY HUNTER AI - FRONTEND v6.0 (compatible Worker v18.0)
-// Modifications :
-//   - Ajout du contrôle d’exécution (slippage Jupiter)
-//   - Affichage du mode d’analyse et des résultats d’exécution
-//   - Paramètres `analysis`, `execution`, `execSize` dans l’URL
+ // ============================================
+// RICHY HUNTER AI – FRONTEND v6.1 (optimisé)
+// Améliorations :
+//   - Gestion du chargement et des erreurs intégrée à l'UI
+//   - Boutons avec état "loading" natif
+//   - Affichage de la latence
+//   - Timeout réseau
+//   - Code plus propre et robuste
 // ============================================
 
 const WORKER_URL = "https://richy-hunter-api.kenedykabori104.workers.dev";
+const REQUEST_TIMEOUT = 15000; // 15 secondes
 
 // =======================
 // UTILITAIRES
 // =======================
 
+/** Affiche un message toast temporaire */
+function showToast(message, type = 'info') {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    toast.textContent = message;
+    toast.className = `toast ${type}`;
+    toast.style.display = 'block';
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(() => {
+        toast.style.display = 'none';
+    }, 4000);
+}
+
+/** Extrait l'adresse Solana d'une URL DexScreener ou d'une adresse brute */
 function extractTokenAddress(input) {
     if (/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(input)) {
         return input;
     }
     const match = input.match(/\/([1-9A-HJ-NP-Za-km-z]{32,44})(?:\?|$)/);
-    if (match) return match[1];
-    return null;
+    return match ? match[1] : null;
 }
 
+/** Accès sécurisé aux propriétés imbriquées */
 function getSafe(data, path, defaultValue) {
     const parts = path.split('.');
     let current = data;
@@ -31,6 +48,7 @@ function getSafe(data, path, defaultValue) {
     return current !== undefined && current !== null ? current : defaultValue;
 }
 
+/** Formatage des nombres */
 function formatNumber(num, style = "compact") {
     if (num === undefined || num === null) return "N/A";
     const n = Number(num);
@@ -56,18 +74,19 @@ function formatNumber(num, style = "compact") {
     return n.toLocaleString('en-US', { maximumFractionDigits: 2 });
 }
 
+/** Mise à jour d'un élément texte */
 function updateElement(id, value) {
     const el = document.getElementById(id);
     if (el) el.textContent = value;
-    else console.warn(`⚠️ Élément #${id} introuvable`);
 }
 
+/** Mise à jour du HTML interne */
 function setElementHTML(id, html) {
     const el = document.getElementById(id);
     if (el) el.innerHTML = html;
-    else console.warn(`⚠️ Élément #${id} introuvable`);
 }
 
+/** Coloration selon le statut */
 function setColor(id, value) {
     const el = document.getElementById(id);
     if (!el) return;
@@ -80,71 +99,95 @@ function setColor(id, value) {
     }
 }
 
-// =======================
-// SCAN TOKEN
-// =======================
-async function scanToken() {
-    console.log("🔍 scanToken() appelée");
-
-    const input = document.getElementById('tokenUrl');
-    if (!input) {
-        console.error("❌ Élément #tokenUrl introuvable");
-        alert("Erreur : le champ de recherche n'existe pas dans la page.");
-        return;
+/** Active/désactive un bouton avec un spinner */
+function setButtonLoading(btn, isLoading) {
+    if (!btn) return;
+    const textSpan = btn.querySelector('.btn-text');
+    const spinnerSpan = btn.querySelector('.spinner');
+    if (isLoading) {
+        btn.disabled = true;
+        if (textSpan) textSpan.style.display = 'none';
+        if (spinnerSpan) spinnerSpan.style.display = 'inline';
+    } else {
+        btn.disabled = false;
+        if (textSpan) textSpan.style.display = 'inline';
+        if (spinnerSpan) spinnerSpan.style.display = 'none';
     }
+}
 
-    let url = input.value.trim();
+/** Fetch avec timeout */
+async function fetchWithTimeout(url, options = {}, timeout = REQUEST_TIMEOUT) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    try {
+        const response = await fetch(url, { ...options, signal: controller.signal });
+        clearTimeout(id);
+        return response;
+    } catch (err) {
+        clearTimeout(id);
+        if (err.name === 'AbortError') {
+            throw new Error('La requête a expiré (timeout)');
+        }
+        throw err;
+    }
+}
+
+// =======================
+// ANALYSE D'UN TOKEN
+// =======================
+
+async function scanToken() {
+    const input = document.getElementById('tokenUrl');
+    if (!input) return;
+
+    const url = input.value.trim();
     if (!url) {
-        alert('📌 Colle un lien DexScreener ou une adresse Solana');
+        showToast('📌 Colle un lien DexScreener ou une adresse Solana', 'warning');
         return;
     }
 
     const token = extractTokenAddress(url);
     if (!token) {
-        alert('❌ Adresse Solana invalide');
+        showToast('❌ Adresse Solana invalide', 'error');
         return;
     }
 
-    console.log(`🔍 Token extrait : ${token}`);
+    const scanBtn = document.getElementById('scanBtn');
+    const latencyEl = document.getElementById('latencyInfo');
 
-    // Désactiver les boutons
-    const allButtons = document.querySelectorAll('button');
-    allButtons.forEach(btn => btn.disabled = true);
-    const button = input.nextElementSibling?.nextElementSibling?.nextElementSibling; // bouton après les divs
-    // Plus robuste : on sélectionne le bouton par son texte ou onclick
-    const analyzeBtn = document.querySelector('button[onclick="scanToken()"]');
-    if (analyzeBtn) analyzeBtn.innerHTML = '⏳ Analyse...';
-
+    setButtonLoading(scanBtn, true);
+    updateElement('latencyInfo', '');
     updateElement('signal', '⏳ Analyse AI en cours...');
     updateElement('score', '...');
 
-    // Mode d'analyse
+    // Paramètres
     const analysisMode = document.querySelector('input[name="analysisMode"]:checked')?.value || 'fast';
-    // Contrôle d’exécution
     const checkExec = document.getElementById('checkExecution')?.checked;
-    const execSize = document.getElementById('execSize')?.value || 1000;
-    const execSizeNum = parseInt(execSize) || 1000;
+    const execSize = parseInt(document.getElementById('execSize')?.value) || 1000;
 
     let apiUrl = `${WORKER_URL}/?token=${encodeURIComponent(token)}&analysis=${analysisMode}`;
     if (checkExec) {
-        apiUrl += `&execution=true&execSize=${execSizeNum}`;
+        apiUrl += `&execution=true&execSize=${execSize}`;
     }
-    console.log(`🌐 Appel au worker : ${apiUrl}`);
+
+    const startTime = performance.now();
 
     try {
-        const response = await fetch(apiUrl);
-        console.log(`📡 Réponse reçue : status ${response.status}`);
-
-        if (!response.ok) throw new Error(`HTTP ${response.status} : ${response.statusText}`);
+        const response = await fetchWithTimeout(apiUrl);
+        if (!response.ok) {
+            throw new Error(`Erreur HTTP ${response.status}`);
+        }
         const data = await response.json();
-        console.log("📊 Données reçues :", data);
+        const latency = Math.round(performance.now() - startTime);
+        updateElement('latencyInfo', `⏱️ Latence totale : ${latency} ms`);
 
         if (data.error) {
-            alert('⚠️ ' + data.error);
+            showToast('⚠️ ' + data.error, 'error');
+            updateElement('signal', '❌ Erreur');
             return;
         }
 
-        // Badge mode d’analyse
+        // Badge mode d'analyse
         const badge = document.getElementById('analysisModeBadge');
         if (badge) {
             badge.textContent = analysisMode === 'institutional' ? '🔬 Institutionnel' : '⚡ Rapide';
@@ -277,44 +320,43 @@ async function scanToken() {
         updateElement('ruleVolume', vol > 100000 ? '✅ Volume en croissance' : vol > 50000 ? '🟡 Volume modéré' : '❌ Volume faible');
         updateElement('ruleSecurity', isSecure ? '✅ Sécurité contrat vérifiée' : '⚠️ Contrat à vérifier');
 
-        console.log("✅ Analyse terminée avec succès.");
     } catch (error) {
-        console.error('❌ Erreur lors du scan :', error);
-        alert('❌ Erreur : ' + error.message);
+        console.error('Erreur scan :', error);
         updateElement('signal', '❌ Erreur de connexion');
+        updateElement('latencyInfo', '');
+        showToast('❌ ' + error.message, 'error');
     } finally {
-        const allButtons = document.querySelectorAll('button');
-        allButtons.forEach(btn => btn.disabled = false);
-        const analyzeBtn2 = document.querySelector('button[onclick="scanToken()"]');
-        if (analyzeBtn2) analyzeBtn2.innerHTML = 'Analyser Token';
+        setButtonLoading(scanBtn, false);
     }
 }
 
 // =======================
-// SCAN NEW TOKENS
+// SCAN NOUVEAUX TOKENS
 // =======================
-async function scanNewTokens() {
-    console.log("🔍 scanNewTokens() appelée");
 
+async function scanNewTokens() {
     const status = document.getElementById('scannerStatus');
     const results = document.getElementById('results');
+    const newScanBtn = document.getElementById('newScanBtn');
+
+    setButtonLoading(newScanBtn, true);
 
     try {
-        if (status) status.innerHTML = '⏳ Recherche nouveaux Solana Gems...';
+        if (status) status.textContent = '⏳ Recherche nouveaux Solana Gems...';
         if (results) results.innerHTML = '<p>🔍 Scan en cours...</p>';
 
-        const response = await fetch(`${WORKER_URL}/?mode=new`);
+        const response = await fetchWithTimeout(`${WORKER_URL}/?mode=new`);
         const data = await response.json();
 
         if (data.error) {
-            alert('⚠️ ' + data.error);
-            if (status) status.innerHTML = '❌ Erreur scan';
+            showToast('⚠️ ' + data.error, 'error');
+            if (status) status.textContent = '❌ Erreur scan';
             return;
         }
 
         if (!data.tokens || data.tokens.length === 0) {
             if (results) results.innerHTML = '<p>😕 Aucun nouveau token détecté</p>';
-            if (status) status.innerHTML = '✅ Scan terminé : 0 token';
+            if (status) status.textContent = '✅ Scan terminé : 0 token';
             return;
         }
 
@@ -364,20 +406,26 @@ async function scanNewTokens() {
         });
 
         if (results) results.innerHTML = html;
-        if (status) status.innerHTML = `✅ Scan terminé : ${data.tokens.length} tokens analysés`;
+        if (status) status.textContent = `✅ Scan terminé : ${data.tokens.length} tokens analysés`;
 
     } catch (error) {
         console.error('New tokens scan error:', error);
-        if (status) status.innerHTML = '❌ Erreur scanner automatique';
+        if (status) status.textContent = '❌ Erreur scanner automatique';
         if (results) results.innerHTML = '<p>⚠️ Impossible de récupérer les données</p>';
+        showToast('❌ ' + error.message, 'error');
+    } finally {
+        setButtonLoading(newScanBtn, false);
     }
 }
 
 // =======================
-// ENTER KEY SUPPORT
+// INITIALISATION
 // =======================
+
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("🚀 Richy Hunter AI Frontend chargé (v6.0)");
+    console.log("🚀 Richy Hunter AI Frontend chargé (v6.1)");
+
+    // Validation avec la touche Entrée
     const input = document.getElementById('tokenUrl');
     if (input) {
         input.addEventListener('keypress', function(e) {
@@ -387,8 +435,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-});
 
-// Exposer globalement
-window.scanToken = scanToken;
-window.scanNewTokens = scanNewTokens;
+    // Liaison des boutons (plus robuste qu'un onclick inline)
+    const scanBtn = document.getElementById('scanBtn');
+    if (scanBtn) {
+        scanBtn.addEventListener('click', scanToken);
+    }
+    const newScanBtn = document.getElementById('newScanBtn');
+    if (newScanBtn) {
+        newScanBtn.addEventListener('click', scanNewTokens);
+    }
+});
