@@ -9,6 +9,9 @@
 </head>
 <body>
 
+<!-- Toast de notifications -->
+<div id="toast" class="toast" style="display:none;"></div>
+
 <div class="app">
 
     <header>
@@ -25,7 +28,6 @@
             placeholder="Colle ton lien DexScreener ou adresse Solana"
             autocomplete="off"
         >
-        <!-- Choix du mode d'analyse -->
         <div style="margin: 10px 0;">
             <label>
                 <input type="radio" name="analysisMode" value="fast" checked> Rapide
@@ -34,7 +36,6 @@
                 <input type="radio" name="analysisMode" value="institutional"> Institutionnel
             </label>
         </div>
-        <!-- Contrôle exécution Jupiter -->
         <div style="margin: 10px 0;">
             <label>
                 <input type="checkbox" id="checkExecution">
@@ -42,7 +43,11 @@
             </label>
             <input type="number" id="execSize" placeholder="Taille (USDC)" value="1000" min="10" style="width:100px; margin-left:8px;">
         </div>
-        <button type="button" onclick="scanToken()">Analyser Token</button>
+        <button id="scanBtn" type="button">
+            <span class="btn-text">Analyser Token</span>
+            <span class="spinner" style="display:none;">⏳</span>
+        </button>
+        <p id="latencyInfo" style="font-size:0.8em; color:#888;"></p>
     </section>
 
     <!-- SCORE -->
@@ -116,7 +121,10 @@
     <!-- NEW GEMS -->
     <section class="card">
         <h2>🔥 NEW SOLANA GEMS HUNTER</h2>
-        <button type="button" onclick="scanNewTokens()">🔥 Scanner nouveaux tokens Solana</button>
+        <button id="newScanBtn" type="button">
+            <span class="btn-text">🔥 Scanner nouveaux tokens Solana</span>
+            <span class="spinner" style="display:none;">⏳</span>
+        </button>
         <div id="scannerStatus">⏳ Scanner prêt</div>
         <div id="results">
             <p>En attente du scan...</p>
